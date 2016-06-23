@@ -81,7 +81,6 @@ function gen_character(name){
 		//pick a point on the perimeter of a rectangle
 		var val = hash.normalize(hash_pos, 2);
 		//top left is start, we count clockwise
-		console.log(rect);
 		var wh_sum = rect.w + rect.h;
 		var w_frac = rect.w / wh_sum;
 		var h_frac = rect.h / wh_sum;
@@ -106,13 +105,17 @@ function gen_character(name){
 		}
 	}
 	//large main body
-	var r1 = gen_rect(21, 50, {x: canvas.width/2, y: canvas.height/2});
+	var r1 = gen_rect(21, 60, {x: canvas.width/2, y: canvas.height/2});
 	//3 medium appendages
 	for (var i = 0; i < 3; i++) {
 		var p = pick_peri(15*i + 4, r1);
-		console.log(p);
-		var r2 = gen_rect(15*i + 7, 30, p);
+		var r2 = gen_rect(15*i + 7, 40, p);
 	}
+	//TODO: draw boosters on left of spaceship by spreading out
+	//		a fixed width of "flame" animation, so it shows up as
+	//		one big booster or several small ones
+	//TODO: draw space backgroud (with neat colors)
+	//TODO: draw stars, planets, dust, mist, etc
 	// --- draw ship name
 	ctx.fillStyle = "#000";
 	ctx.font = "10px Arial";
