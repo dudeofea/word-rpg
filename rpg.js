@@ -1,9 +1,7 @@
 //use the body as our main game window
 function init_rpg(){
 	//insert character canvas into body
-	// var char = gen_character('boa');
-	// var char = gen_character('bob');
-	var char = gen_character('Zoikostra');
+	var char = gen_ship('Zoikostra');
 	document.body.appendChild(char);
 }
 
@@ -29,33 +27,68 @@ function normalize_stats(info, stats){
 	}
 }
 
-//generate a character based off a string
-function gen_character(name){
+//Ideas for game mechanics:
+//
+//	- items: addons to the ship, can be broken/damaged, typically consume energy
+//	- solar panels: to recharge energy, is an optional item
+//	- shields: use energy every turn to shield damage
+//	- atomizing: scrap an item, or a piece of the ship for energy
+//	- attack surface: a grid used to show/calculate damage taken/inflicted from
+//	  one ship to another
+//	- gaining XP also trickles down into your other ships when returning to
+//	  your ship hangar (probably just a fixed amount)
+//
+
+//Lore:
+//
+//	- ships can "level up" after gaining a certain amount of XP because the
+//	  atomizer/de-atomizer is controlled by the ships onboard computer
+//	  which uses a quantum FPGA to run an recursive neural net to figure out
+//	  the best possible ship confiuguration by leveling-up every epoch.
+//	- this system is central to every ship and is called the god core
+//	- ships are made by creating a god core, and setting it's initial parameters
+//	  with an input string (the name of the ship)
+//	- it takes more XP every time as the neural net learns less and less new
+//	  information over time so it takes longer
+//	- the god core can also optionally be powered off (it takes a decent amount
+//	  of energy)
+//	- the god core is somewhat power hungry as the fitness simulations it
+//	  runs are fairly complex and specific to it's reality. it can optionally
+//	  be underclocked/turned off to get an THRP boost, however this will affect
+//	  XP gains. The opposite is true as well, an overclock will boost XP gains
+//	  at the cost of THRP
+//	- when returning to the hangar, you sync your ships together and the
+//	  other ships get a stats boost from incorporting your ship's experiences
+//	  into their god core
+//
+
+//generate a ship based off a string
+function gen_ship(name){
 	var hash = Sha256.hash(name);
 	var info = {};
 	info['name'] = name;
 	info['hash'] = hash;
 	//stats are:
 	//
-	//	- STR: physical strength, determines attack strength for punching/smashing/etc
-	//	- INT: intelligence, determines (magical) attack strength for beams/spells/etc
-	//	- HP: health points
+	//	- HP: max health points, represents the ship integrity
+	//	- ENRG: max energy levels, energy is used to perform actions. if you run out you essentially die
+	//	- THRP: throughput, how much energy the ship can source in a turn
 	//
 	//	- level up boosts are how much stats grow per level.
-	//	  ex: STR_BST, INT_BST, etc
+	//	  ex: HP_BST, etc
 	//
 	// --- generate stats
-	info['str'] = hash.normalize(0, 4);
-	info['int'] = hash.normalize(4, 4);
+	info['e_max'] = hash.normalize(0, 4);
+	info['thrp'] = hash.normalize(4, 4);
 	info['hp_max'] = hash.normalize(8, 4);
 
-	info['str_bst'] = hash.normalize(12, 4);
-	info['int_bst'] = hash.normalize(16, 4);
+	info['e_max_bst'] = hash.normalize(12, 4);
+	info['thrp_bst'] = hash.normalize(16, 4);
 	info['hp_max_bst'] = hash.normalize(20, 4);
-	//TODO: normalize across stats
-	normalize_stats(info, ['str', 'int', 'hp_max']);
-	//TODO: normalize across stat boosts
-	normalize_stats(info, ['str_bst', 'int_bst', 'hp_max_bst']);
+	//normalize across stats
+	normalize_stats(info, ['e_max', 'thrp', 'hp_max']);
+	//normalize across stat boosts
+	normalize_stats(info, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
 	// --- generate graphics
 	var canvas = document.createElement('canvas');
 	canvas.height = 150;
