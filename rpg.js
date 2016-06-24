@@ -3,9 +3,12 @@ var convert = require('color-convert');
 
 //use the body as our main game window
 domready(function init_rpg(){
-	//insert character canvas into body
-	var char = gen_ship('Zoikostra');
-	document.body.appendChild(char);
+	//insert canvases into body
+	var names = ['Zoikostra', 'Garanthuur', 'Ijiklin', 'Bolom', 'Septfire', 'Thalanmir', 'Wawok', 'The Unamed One', 'Greysbane', 'Furyton', 'Rhyolsteros', 'Hastesfas'];
+	for (var i = 0; i < names.length; i++) {
+		var char = gen_ship(names[i]);
+		document.body.appendChild(char);
+	}
 });
 
 //get a 0 - 1 range from a series of hex characters
@@ -94,8 +97,8 @@ function gen_ship(name){
 	normalize_stats(info, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
 	// --- generate graphics
 	var canvas = document.createElement('canvas');
-	canvas.height = 150;
-	canvas.width = 150;
+	canvas.height = 200;
+	canvas.width = 200;
 	canvas.className = "rpg-character";
 	ctx = canvas.getContext('2d');
 	// --- pick colors scheme
@@ -105,22 +108,37 @@ function gen_ship(name){
 	var color1 = '#'+convert.lab.hex(30, a, b);
 	var color2 = '#'+convert.lab.hex(5, a, b);
 	// --- make a basic shape to build on
-	var gen_rect = function(hash_pos, scale, center){
-		//draw a generated rectangle
-		var width = (hash.normalize(hash_pos, 4) + 0.2) * scale;
-		var area = Math.pow(scale/2, 2);
-		var rect_size = {w: width, h: area/width};
+	//draw a generated rectangle
+	var draw_rect = function(rect){
+		//draw the rectangle
 		ctx.fillStyle = color1;
 		ctx.fillRect(
-			center.x - rect_size.w/2,
-			center.y - rect_size.h/2,
-			rect_size.w,
-			rect_size.h);
-		return {x: center.x, y: center.y, w: rect_size.w, h: rect_size.h};
+			parseInt(rect.x - rect.w/2),
+			parseInt(rect.y - rect.h/2),
+			parseInt(rect.w),
+			parseInt(rect.h));
+	}
+	//draw multiple
+	var draw_rects = function(rects){
+		for (var i = 0; i < rects.length; i++) {
+			draw_rect(rects[i]);
+		}
+	}
+	//generate a basic rectangle
+	var gen_rect = function(hash_pos, scale, center, origin){
+		var width = (hash.normalize(hash_pos, 4) + 0.2) * scale;
+		var area = Math.pow(scale/2, 2);
+		var rect = {x: center.x, y: center.y, w: width, h: area/width};
+		//adjust x/y for origin
+		if(origin == 'top'){ 	rect.y += rect.h/2 - 1; }
+		if(origin == 'bottom'){ rect.y -= rect.h/2 - 1; }
+		if(origin == 'left'){ 	rect.x += rect.w/2 - 1; }
+		if(origin == 'right'){ 	rect.x -= rect.w/2 - 1; }
+		return rect;
 	};
-	var pick_peri = function(hash_pos, rect){
+	//get a perimeter point based on [0-1] value
+	var pick_peri = function(val, rect){
 		//pick a point on the perimeter of a rectangle
-		var val = hash.normalize(hash_pos, 2);
 		//top left is start, we count clockwise
 		var wh_sum = rect.w + rect.h;
 		var w_frac = rect.w / wh_sum;
@@ -129,19 +147,19 @@ function gen_ship(name){
 			val = (val - 0.5)*2;
 			if(val > w_frac){	//in left section
 				var pos = rect.h * ((val-w_frac) / h_frac);
-				return {x: rect.x - rect.w/2, y: rect.y + rect.h/2 - pos};
+				return {x: rect.x - rect.w/2, y: rect.y + rect.h/2 - pos, o: 'right'};
 			}else{			//in bottom section
 				var pos = rect.w * (val / w_frac);
-				return {x: rect.x + rect.w/2 - pos, y: rect.y + rect.h/2};
+				return {x: rect.x + rect.w/2 - pos, y: rect.y + rect.h/2, o: 'top'};
 			}
 		}else{			//before mid point
 			val = (val)*2;
 			if(val > w_frac){	//in right section
 				var pos = rect.h * ((val-w_frac) / h_frac);
-				return {x: rect.x + rect.w/2, y: rect.y - rect.h/2 + pos};
+				return {x: rect.x + rect.w/2, y: rect.y - rect.h/2 + pos, o: 'left'};
 			}else{			//in top section
 				var pos = rect.w * (val / w_frac);
-				return {x: rect.x - rect.w/2 + pos, y: rect.y - rect.h/2};
+				return {x: rect.x - rect.w/2 + pos, y: rect.y - rect.h/2, o: 'bottom'};
 			}
 		}
 	}
@@ -149,12 +167,31 @@ function gen_ship(name){
 	ctx.fillStyle = color2;
 	ctx.fillRect(0,0,canvas.width,canvas.height);
 	//large main body
-	var r1 = gen_rect(21, 75, {x: canvas.width/2, y: canvas.height/2});
+	var rects = [];
+	var peris = [];
+	rects.push(gen_rect(21, 75, {x: canvas.width/2, y: canvas.height/2}));
 	//3 medium appendages
 	for (var i = 0; i < 3; i++) {
-		var p = pick_peri(15*i + 4, r1);
-		var r2 = gen_rect(15*i + 7, 50, p);
+		var val = hash.normalize(15*i + 4, 2);
+		var val_good = false;
+		while(!val_good){
+			val_good = true;
+			for (var j = 0; j < peris.length; j++) {
+				if(Math.abs(peris[j] - val) < 0.1){
+					console.log(peris[j], val);
+					val += 0.1;
+					if(val > 1.0){ val -= 1.0; }
+					val_good = false;
+				}
+			}
+		}
+		peris.push(val);
+		var p = pick_peri(val, rects[0]);
+		rects.push(gen_rect(15*i + 7, 40, p, p.o));
+		//TODO: find rects that are too skinny and on corners and push them
+		//		into the main rectangle
 	}
+	draw_rects(rects);
 	//TODO: draw boosters on left of spaceship by spreading out
 	//		a fixed width of "flame" animation, so it shows up as
 	//		one big booster or several small ones
