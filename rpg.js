@@ -1,9 +1,12 @@
+var domready = require("domready");
+var convert = require('color-convert');
+
 //use the body as our main game window
-function init_rpg(){
+domready(function init_rpg(){
 	//insert character canvas into body
 	var char = gen_ship('Zoikostra');
 	document.body.appendChild(char);
-}
+});
 
 //get a 0 - 1 range from a series of hex characters
 String.prototype.normalize = function(start, length){
@@ -95,14 +98,19 @@ function gen_ship(name){
 	canvas.width = 150;
 	canvas.className = "rpg-character";
 	ctx = canvas.getContext('2d');
-	//TODO: pick colors later (some kind of HSL scheme)
+	// --- pick colors scheme
+	//a set of hues/saturations is picked while the lightness is controlled
+	var a = 60*(hash.normalize(58, 4) - 0.5);
+	var b = 60*(hash.normalize(42, 4) - 0.5);
+	var color1 = '#'+convert.lab.hex(30, a, b);
+	var color2 = '#'+convert.lab.hex(5, a, b);
 	// --- make a basic shape to build on
 	var gen_rect = function(hash_pos, scale, center){
 		//draw a generated rectangle
 		var width = (hash.normalize(hash_pos, 4) + 0.2) * scale;
 		var area = Math.pow(scale/2, 2);
 		var rect_size = {w: width, h: area/width};
-		ctx.fillStyle = "#666";
+		ctx.fillStyle = color1;
 		ctx.fillRect(
 			center.x - rect_size.w/2,
 			center.y - rect_size.h/2,
@@ -137,12 +145,15 @@ function gen_ship(name){
 			}
 		}
 	}
+	//background
+	ctx.fillStyle = color2;
+	ctx.fillRect(0,0,canvas.width,canvas.height);
 	//large main body
-	var r1 = gen_rect(21, 60, {x: canvas.width/2, y: canvas.height/2});
+	var r1 = gen_rect(21, 75, {x: canvas.width/2, y: canvas.height/2});
 	//3 medium appendages
 	for (var i = 0; i < 3; i++) {
 		var p = pick_peri(15*i + 4, r1);
-		var r2 = gen_rect(15*i + 7, 40, p);
+		var r2 = gen_rect(15*i + 7, 50, p);
 	}
 	//TODO: draw boosters on left of spaceship by spreading out
 	//		a fixed width of "flame" animation, so it shows up as
@@ -150,7 +161,7 @@ function gen_ship(name){
 	//TODO: draw space backgroud (with neat colors)
 	//TODO: draw stars, planets, dust, mist, etc
 	// --- draw ship name
-	ctx.fillStyle = "#000";
+	ctx.fillStyle = "#FFF";
 	ctx.font = "10px Arial";
 	ctx.textAlign="center";
 	ctx.fillText(name,canvas.width/2,12);
