@@ -3,35 +3,20 @@ var convert = require('color-convert');
 
 //use the body as our main game window
 domready(function init_rpg(){
+	//make div to hold all screens
+	var main_screen = document.createElement('div');
+	main_screen.className = "rpg-screen";
+	document.body.appendChild(main_screen);
 	//insert canvases into body
-	var names = ['Zoikostra', 'Garanthuur', 'Ijiklin', 'Bolom', 'Septfire', 'Thalanmir', 'Wawok', 'The Unamed One', 'Greysbane', 'Furyton', 'Rhyolsteros', 'Hastesfas'];
-	for (var i = 0; i < names.length; i++) {
-		var char = gen_ship(names[i]);
-		document.body.appendChild(char);
-	}
+	// var names = ['Zoikostra', 'Garanthuur', 'Ijiklin', 'Bolom', 'Septfire', 'Thalanmir', 'Wawok', 'The Unamed One', 'Greysbane', 'Furyton', 'Rhyolsteros', 'Hastesfas'];
+	// for (var i = 0; i < names.length; i++) {
+	// 	var char = gen_ship(names[i]);
+	// 	document.body.appendChild(char);
+	// }
+	var s1 = gen_ship('Zoikostra');
+	var s2 = gen_ship('Garanthuur');
+	load_combat(s1, s2, main_screen);
 });
-
-//get a 0 - 1 range from a series of hex characters
-String.prototype.normalize = function(start, length){
-	var val = this.substring(start, start+length);
-	//console.log(val);
-	var max = Math.pow(2, length*4) - 1;
-	return parseInt(val, 16)/max;
-}
-
-//normalize a set of stats in object
-function normalize_stats(info, stats){
-	var avg = 0;
-	//get average
-	for (var i = 0; i < stats.length; i++) {
-		avg += info[stats[i]];
-	}
-	avg /= stats.length;
-	//normalize
-	for (var i = 0; i < stats.length; i++) {
-		info[stats[i]] /= avg;
-	}
-}
 
 //Ideas for game mechanics:
 //
@@ -68,38 +53,112 @@ function normalize_stats(info, stats){
 //	  into their god core
 //
 
+var global_vars = {
+	ship_canvas: {w: 200, h: 200},
+	grid_canvas: {w: 25, h: 25}
+}
+
+//get a 0 - 1 range from a series of hex characters
+String.prototype.normalize = function(start, length){
+	var val = this.substring(start, start+length);
+	//console.log(val);
+	var max = Math.pow(2, length*4) - 1;
+	return parseInt(val, 16)/max;
+}
+
+//normalize a set of stats in object
+function normalize_stats(obj, stats){
+	var avg = 0;
+	//get average
+	for (var i = 0; i < stats.length; i++) {
+		avg += obj[stats[i]];
+	}
+	avg /= stats.length;
+	//normalize
+	for (var i = 0; i < stats.length; i++) {
+		obj[stats[i]] /= avg;
+	}
+}
+
+//loads the combat screen between the player's ship and an enemy ship
+function load_combat(player, enemy, game_screen){
+	console.log(player.name + ' vs ' + enemy.name);
+	// --- create the UI elements
+	var combat_screen = document.createElement('div');
+	combat_screen.className = "rpg-combat-screen";
+	//makes a ui for player / enemy
+	var make_ui = function(ship, grid, cla){
+		var wrapper = document.createElement('div');
+		wrapper.className = cla;
+		var ship_elem = document.createElement('div');
+		ship_elem.className = "ship";
+		ship_elem.appendChild(ship.canvas);
+		var ui_elem = document.createElement('div');
+		ui_elem.className = "ui";
+		ui_elem.appendChild(grid.canvas);
+		wrapper.appendChild(ship_elem);
+		wrapper.appendChild(ui_elem);
+		return wrapper;
+	}
+	// --- make the attack / defend grids
+	var make_grid = function(){
+		var grid = {};
+		var canvas = document.createElement('canvas');
+		canvas.className = "rpg-canvas";
+		canvas.width = global_vars.grid_canvas.w;
+		canvas.height = global_vars.grid_canvas.h;
+		grid.ctx = canvas.getContext('2d');
+		grid.defense = Array.apply(null, Array(canvas.width*canvas.height)).map(Number.prototype.valueOf, 0);
+		grid.framebuffer = grid.ctx.createImageData(canvas.width, canvas.height);
+		//colorize
+		var data = grid.framebuffer.data;
+		for (var i = 0; i < data.length; i += 4) {
+			data[i]	  = 255;
+			data[i+1] = 255;
+			data[i+2] = 255;
+			data[i+3] = 0;
+		}
+		//when refreshing value
+		grid.refresh = function(){
+			var data = this.framebuffer.data;
+			for (var i = 0; i < this.defense.length; i++) {
+				data[i*4+3] = this.defense[i];
+			}
+			this.ctx.putImageData(this.framebuffer, 0, 0);
+		}
+		canvas.onmousemove = function(e){
+			var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
+			var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
+			//console.log('mouse: ', grid_x, grid_y, e);
+			grid.defense[grid_y*e.target.width+grid_x] += 5;
+			grid.refresh();
+		}
+		grid.canvas = canvas;
+		return grid;
+	};
+	var player_grid = make_grid();
+	var enemy_grid = make_grid();
+	//TODO: --- make health / energy bars
+	// --- finally, add everything to screen
+	combat_screen.appendChild(make_ui(player, player_grid, 'player'));
+	combat_screen.appendChild(make_ui(enemy, enemy_grid, 'enemy'));
+	game_screen.innerHTML = "";
+	game_screen.appendChild(combat_screen);
+}
+
 //generate a ship based off a string
 function gen_ship(name){
 	var hash = Sha256.hash(name);
-	var info = {};
-	info['name'] = name;
-	info['hash'] = hash;
-	//stats are:
-	//
-	//	- HP: max health points, represents the ship integrity
-	//	- ENRG: max energy levels, energy is used to perform actions. if you run out you essentially die
-	//	- THRP: throughput, how much energy the ship can source in a turn
-	//
-	//	- level up boosts are how much stats grow per level.
-	//	  ex: HP_BST, etc
-	//
+	var ship = {};
 	// --- generate stats
-	info['e_max'] = hash.normalize(0, 4);
-	info['thrp'] = hash.normalize(4, 4);
-	info['hp_max'] = hash.normalize(8, 4);
-
-	info['e_max_bst'] = hash.normalize(12, 4);
-	info['thrp_bst'] = hash.normalize(16, 4);
-	info['hp_max_bst'] = hash.normalize(20, 4);
-	//normalize across stats
-	normalize_stats(info, ['e_max', 'thrp', 'hp_max']);
-	//normalize across stat boosts
-	normalize_stats(info, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
+	ship = gen_ship_stats(hash)
+	ship['name'] = name;
+	ship['hash'] = hash;
 	// --- generate graphics
 	var canvas = document.createElement('canvas');
-	canvas.height = 200;
-	canvas.width = 200;
-	canvas.className = "rpg-character";
+	canvas.height = global_vars.ship_canvas.w;
+	canvas.width = global_vars.ship_canvas.h;
+	canvas.className = "rpg-canvas";
 	ctx = canvas.getContext('2d');
 	// --- pick colors scheme
 	//a set of hues/saturations is picked while the lightness is controlled
@@ -137,6 +196,7 @@ function gen_ship(name){
 		return rect;
 	};
 	//get a perimeter point based on [0-1] value
+	//TODO: quantize perimeter points to help line things up better
 	var pick_peri = function(val, rect){
 		//pick a point on the perimeter of a rectangle
 		//top left is start, we count clockwise
@@ -173,12 +233,12 @@ function gen_ship(name){
 	//3 medium appendages
 	for (var i = 0; i < 3; i++) {
 		var val = hash.normalize(15*i + 4, 2);
+		//make sure the rectangle have enough space between them
 		var val_good = false;
 		while(!val_good){
 			val_good = true;
 			for (var j = 0; j < peris.length; j++) {
 				if(Math.abs(peris[j] - val) < 0.1){
-					console.log(peris[j], val);
 					val += 0.1;
 					if(val > 1.0){ val -= 1.0; }
 					val_good = false;
@@ -186,6 +246,7 @@ function gen_ship(name){
 			}
 		}
 		peris.push(val);
+		//add the rectangle
 		var p = pick_peri(val, rects[0]);
 		rects.push(gen_rect(15*i + 7, 40, p, p.o));
 		//TODO: find rects that are too skinny and on corners and push them
@@ -202,6 +263,33 @@ function gen_ship(name){
 	ctx.font = "10px Arial";
 	ctx.textAlign="center";
 	ctx.fillText(name,canvas.width/2,12);
-	console.log(info);
-	return canvas;
+	console.log(ship);
+	ship['canvas'] = canvas;
+	return ship;
+}
+
+function gen_ship_stats(hash){
+	//stats are:
+	//
+	//      - HP: max health points, represents the ship integrity
+	//      - ENRG: max energy levels, energy is used to perform actions. if you run out you essentially die
+	//      - THRP: throughput, how much energy the ship can source in a turn
+	//
+	//      - level up boosts are how much stats grow per level.
+	//        ex: HP_BST, etc
+	//
+	// --- generate stats
+	ship = {};
+	ship['e_max'] = hash.normalize(0, 4);
+	ship['thrp'] = hash.normalize(4, 4);
+	ship['hp_max'] = hash.normalize(8, 4);
+
+	ship['e_max_bst'] = hash.normalize(12, 4);
+	ship['thrp_bst'] = hash.normalize(16, 4);
+	ship['hp_max_bst'] = hash.normalize(20, 4);
+	//normalize across stats
+	normalize_stats(ship, ['e_max', 'thrp', 'hp_max']);
+	//normalize across stat boosts
+	normalize_stats(ship, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
+	return ship;
 }
