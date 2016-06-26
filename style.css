@@ -50,7 +50,8 @@ abbr, acronym {
 
 html, body, .rpg-screen, .rpg-combat-screen {
   height: 100%;
-  width: 100%; }
+  width: 100%;
+  background-color: #011627; }
 
 .rpg-canvas {
   image-rendering: optimizeSpeed;
@@ -72,7 +73,11 @@ html, body, .rpg-screen, .rpg-combat-screen {
   float: left;
   position: relative; }
   .rpg-combat-screen .player .rpg-canvas, .rpg-combat-screen .enemy .rpg-canvas {
-    width: 100%; }
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    display: block;
+    background-color: rgba(0, 0, 0, 0.05); }
   .rpg-combat-screen .player .ship, .rpg-combat-screen .player .ui, .rpg-combat-screen .enemy .ship, .rpg-combat-screen .enemy .ui {
     height: 100%;
     width: 100%;
@@ -81,5 +86,32 @@ html, body, .rpg-screen, .rpg-combat-screen {
     position: absolute;
     top: 0;
     left: 0; }
+
+.rpg-combat-screen .stat-bar {
+  height: 30px;
+  max-width: 400px;
+  margin: 10px auto 0 auto;
+  box-sizing: border-box;
+  padding: 3px;
+  background: #000;
+  position: relative; }
+  .rpg-combat-screen .stat-bar .stat-bar-inner {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background-color: rgba(253, 255, 252, 0.5); }
+  .rpg-combat-screen .stat-bar .stat-bar-text {
+    font-family: monospace;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 32px;
+    position: absolute;
+    top: 0;
+    left: 10px;
+    color: #FDFFFC; }
+  .rpg-combat-screen .stat-bar.health .stat-bar-inner {
+    background-color: rgba(231, 29, 54, 0.9); }
+  .rpg-combat-screen .stat-bar.energy .stat-bar-inner {
+    background-color: rgba(46, 196, 182, 0.8); }
 
 /*# sourceMappingURL=style.css.map */

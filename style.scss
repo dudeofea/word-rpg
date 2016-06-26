@@ -1,10 +1,19 @@
 //CSS reset
 html,body,div,span,applet,object,iframe,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,label,legend,p,blockquote,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-weight:inherit;font-style:inherit;font-size:100%;font-family:inherit;vertical-align:baseline;}body{line-height:1;color:black;background:white;}:focus{outline:0;}table{border-collapse:collapse;border-spacing:0;}caption,th,td{text-align:left;font-weight:normal;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}ol,ul{list-style:none;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}blockquote:before,blockquote:after,q:before,q:after{content:"";}blockquote,q{quotes:"" "";}abbr,acronym{border:0;}
 
+//color palette
+$black: #000;
+$dark: #011627;
+$light: #FDFFFC;
+$blue: #2EC4B6;
+$red: #E71D36;
+$orange: #FF9F1C;
+
 //fullscreen
 html, body, .rpg-screen, .rpg-combat-screen {
 	height: 100%;
 	width: 100%;
+	background-color: $dark;
 }
 
 //disable interpolation on canvases
@@ -26,6 +35,10 @@ html, body, .rpg-screen, .rpg-combat-screen {
 		position: relative;
 		.rpg-canvas {
 			width: 100%;
+			max-width: 400px;
+			margin: 0 auto;
+			display: block;
+			background-color: rgba(0,0,0,0.05);
 		}
 		.ship, .ui {
 			height: 100%;
@@ -35,6 +48,37 @@ html, body, .rpg-screen, .rpg-combat-screen {
 			position: absolute;
 			top: 0;
 			left: 0;
+		}
+	}
+	.stat-bar {
+		height: 30px;
+		max-width: 400px;
+		margin: 10px auto 0 auto;
+		box-sizing: border-box;
+		padding: 3px;
+		background: $black;
+		position: relative;
+		.stat-bar-inner {
+			width: 100%;
+			height: 100%;
+			display: block;
+			background-color: rgba($light, 0.5);
+		}
+		.stat-bar-text {
+			font-family: monospace;
+			font-size: 15px;
+			font-weight: bold;
+			line-height: 32px;
+			position: absolute;
+			top: 0;
+			left: 10px;
+			color: $light;
+		}
+		&.health .stat-bar-inner {
+			background-color: rgba($red, 0.9);
+		}
+		&.energy .stat-bar-inner {
+			background-color: rgba($blue, 0.8);
 		}
 	}
 }

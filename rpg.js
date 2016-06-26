@@ -7,12 +7,7 @@ domready(function init_rpg(){
 	var main_screen = document.createElement('div');
 	main_screen.className = "rpg-screen";
 	document.body.appendChild(main_screen);
-	//insert canvases into body
 	// var names = ['Zoikostra', 'Garanthuur', 'Ijiklin', 'Bolom', 'Septfire', 'Thalanmir', 'Wawok', 'The Unamed One', 'Greysbane', 'Furyton', 'Rhyolsteros', 'Hastesfas'];
-	// for (var i = 0; i < names.length; i++) {
-	// 	var char = gen_ship(names[i]);
-	// 	document.body.appendChild(char);
-	// }
 	var s1 = gen_ship('Zoikostra');
 	var s2 = gen_ship('Garanthuur');
 	load_combat(s1, s2, main_screen);
@@ -81,21 +76,32 @@ function normalize_stats(obj, stats){
 }
 
 //loads the combat screen between the player's ship and an enemy ship
+//TODO: add grid glitter animation to show that it exists
 function load_combat(player, enemy, game_screen){
 	console.log(player.name + ' vs ' + enemy.name);
 	// --- create the UI elements
 	var combat_screen = document.createElement('div');
 	combat_screen.className = "rpg-combat-screen";
 	//makes a ui for player / enemy
-	var make_ui = function(ship, grid, cla){
+	var make_ui = function(ship, cla){
+		//to hold everything
 		var wrapper = document.createElement('div');
 		wrapper.className = cla;
+		//the actual ship
 		var ship_elem = document.createElement('div');
 		ship_elem.className = "ship";
-		ship_elem.appendChild(ship.canvas);
+		ship_elem.appendChild(ship.elem);
+		//the attack grid/matrix
 		var ui_elem = document.createElement('div');
 		ui_elem.className = "ui";
-		ui_elem.appendChild(grid.canvas);
+		ship.grid = make_grid();
+		//health / energy bars
+		ship.health_bar = make_bar(100, 'health');
+		ship.energy_bar = make_bar(250, 'energy');
+		//adding everything
+		ui_elem.appendChild(ship.grid.elem);
+		ui_elem.appendChild(ship.health_bar.elem);
+		ui_elem.appendChild(ship.energy_bar.elem);
 		wrapper.appendChild(ship_elem);
 		wrapper.appendChild(ui_elem);
 		return wrapper;
@@ -133,15 +139,38 @@ function load_combat(player, enemy, game_screen){
 			grid.defense[grid_y*e.target.width+grid_x] += 5;
 			grid.refresh();
 		}
-		grid.canvas = canvas;
+		grid.elem = canvas;
 		return grid;
 	};
-	var player_grid = make_grid();
-	var enemy_grid = make_grid();
-	//TODO: --- make health / energy bars
+	// --- make a colored bar
+	var make_bar = function(max, cla){
+		var bar = {max: max, val: max};
+		//wrapper
+		var elem = document.createElement('div');
+		elem.className = "stat-bar "+cla;
+		//variable bar
+		var inner = document.createElement('span');
+		inner.className = "stat-bar-inner";
+		//text value
+		var text = document.createElement('p');
+		text.className = 'stat-bar-text';
+		//add all to wrapper
+		elem.appendChild(inner);
+		elem.appendChild(text);
+		bar.elem = elem;
+		bar.text_elem = text;
+		bar.inner_elem = inner;
+		//on refresh
+		bar.refresh = function(){
+			this.text_elem.innerHTML = this.max + ' / ' + this.val;
+			this.inner_elem.style.width = 100 * this.val / this.max + '%';
+		}
+		bar.refresh();
+		return bar;
+	};
 	// --- finally, add everything to screen
-	combat_screen.appendChild(make_ui(player, player_grid, 'player'));
-	combat_screen.appendChild(make_ui(enemy, enemy_grid, 'enemy'));
+	combat_screen.appendChild(make_ui(player, 'player'));
+	combat_screen.appendChild(make_ui(enemy, 'enemy'));
 	game_screen.innerHTML = "";
 	game_screen.appendChild(combat_screen);
 }
@@ -223,9 +252,9 @@ function gen_ship(name){
 			}
 		}
 	}
-	//background
-	ctx.fillStyle = color2;
-	ctx.fillRect(0,0,canvas.width,canvas.height);
+	// --- background
+	//ctx.fillStyle = color2;
+	//ctx.fillRect(0,0,canvas.width,canvas.height);
 	//large main body
 	var rects = [];
 	var peris = [];
@@ -264,7 +293,7 @@ function gen_ship(name){
 	ctx.textAlign="center";
 	ctx.fillText(name,canvas.width/2,12);
 	console.log(ship);
-	ship['canvas'] = canvas;
+	ship.elem = canvas;
 	return ship;
 }
 
