@@ -144,6 +144,12 @@ function load_combat(player, enemy, game_screen){
 			data[i+2] = 255;
 			data[i+3] = 0;
 		}
+		//when damage is inflicted
+		grid.damage = function(dmg, x, y, callback){
+			this.defense[y*this.elem.width+x] -= dmg;
+			this.refresh();
+			//TODO: make extra canvas layer and fade with CSS transition
+		}
 		//when refreshing value
 		grid.refresh = function(){
 			var data = this.framebuffer.data;
@@ -152,12 +158,10 @@ function load_combat(player, enemy, game_screen){
 			}
 			this.ctx.putImageData(this.framebuffer, 0, 0);
 		}
-		canvas.onmousemove = function(e){
+		canvas.onmousedown = function(e){
 			var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
 			var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
-			//console.log('mouse: ', grid_x, grid_y, e);
-			grid.defense[grid_y*e.target.width+grid_x] += 5;
-			grid.refresh();
+			grid.damage(15, grid_x, grid_y);
 		}
 		grid.elem = canvas;
 		return grid;
