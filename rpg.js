@@ -75,6 +75,26 @@ function normalize_stats(obj, stats){
 	}
 }
 
+//generate a gaussian distribution over a grid, returns the grid
+function gaussian(strength, radius, template){
+	var w = template.elem.width;
+	var h = template.elem.height;
+	var w2 = w/2, h2 = h/2;
+	var arr = Array.apply(null, Array(w*h)).map(Number.prototype.valueOf, 0);
+	var rho2 = radius*radius;
+	var const1 = strength*255;
+	var const2 = -1/(2*radius*radius);
+	for (var y = 0; y < h; y++) {
+		var off = y*w;
+		for (var x = 0; x < w; x++) {
+			var posx = x - w2;
+			var posy = y - h2;
+			arr[off+x] = const1*Math.exp(const2*(posx*posx + posy*posy));
+		}
+	}
+	return arr;
+}
+
 //loads the combat screen between the player's ship and an enemy ship
 //TODO: add grid glitter animation to show that it exists
 function load_combat(player, enemy, game_screen){
@@ -168,9 +188,19 @@ function load_combat(player, enemy, game_screen){
 		bar.refresh();
 		return bar;
 	};
+	// --- make the uis
+	var player_ui = make_ui(player, 'player');
+	var enemy_ui = make_ui(enemy, 'enemy');
+	// --- set shields to max value
+	//for now just show gaussian distribution
+	player.grid.defense = gaussian(0.7, 5, player.grid);
+	player.grid.refresh();
+	enemy.grid.defense = gaussian(0.5, 5, player.grid);
+	enemy.grid.refresh();
+	//TODO: --- setup attack events
 	// --- finally, add everything to screen
-	combat_screen.appendChild(make_ui(player, 'player'));
-	combat_screen.appendChild(make_ui(enemy, 'enemy'));
+	combat_screen.appendChild(player_ui);
+	combat_screen.appendChild(enemy_ui);
 	game_screen.innerHTML = "";
 	game_screen.appendChild(combat_screen);
 }
