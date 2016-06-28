@@ -1,6 +1,25 @@
 //CSS reset
 html,body,div,span,applet,object,iframe,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,label,legend,p,blockquote,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-weight:inherit;font-style:inherit;font-size:100%;font-family:inherit;vertical-align:baseline;}body{line-height:1;color:black;background:white;}:focus{outline:0;}table{border-collapse:collapse;border-spacing:0;}caption,th,td{text-align:left;font-weight:normal;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}ol,ul{list-style:none;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}blockquote:before,blockquote:after,q:before,q:after{content:"";}blockquote,q{quotes:"" "";}abbr,acronym{border:0;}
 
+//fonts
+@import "node_modules/font-awesome/scss/font-awesome.scss";
+
+//mixins
+@mixin border-radius($top, $right, $bottom, $left) {
+	-webkit-border-top-left-radius: $top;
+	-webkit-border-top-right-radius: $right;
+	-webkit-border-bottom-right-radius: $bottom;
+	-webkit-border-bottom-left-radius: $left;
+	-moz-border-radius-topleft: $top;
+	-moz-border-radius-topright: $right;
+	-moz-border-radius-bottomright: $bottom;
+	-moz-border-radius-bottomleft: $left;
+	border-top-left-radius: $top;
+	border-top-right-radius: $right;
+	border-bottom-right-radius: $bottom;
+	border-bottom-left-radius: $left;
+}
+
 //color palette
 $black: #000;
 $dark: #011627;
@@ -50,35 +69,62 @@ html, body, .rpg-screen, .rpg-combat-screen {
 			left: 0;
 		}
 	}
+	$stat-bar-height: 25px;
+	$stat-bar-border: 2px solid rgba($light, 0.7);
 	.stat-bar {
-		height: 30px;
+		height: $stat-bar-height;
 		max-width: 400px;
-		margin: 10px auto 0 auto;
+		margin: 0 auto;
 		box-sizing: border-box;
-		padding: 3px;
-		background: $black;
+		border: $stat-bar-border;
+		border-bottom: 0;
 		position: relative;
+		overflow: hidden;
+		background-color: $black;
+		//the bar
 		.stat-bar-inner {
 			width: 100%;
 			height: 100%;
 			display: block;
 			background-color: rgba($light, 0.5);
 		}
+		//the text
 		.stat-bar-text {
 			font-family: monospace;
-			font-size: 15px;
+			font-size: 14px;
 			font-weight: bold;
-			line-height: 32px;
+			line-height: $stat-bar-height - 2;
 			position: absolute;
 			top: 0;
 			left: 10px;
-			color: $light;
+			color: rgba($light, 0.8);
+			text-shadow: 1px 1px 0px rgba($black, 0.7);
 		}
+		//the icon
+		i {
+			position: absolute;
+			top: 0;
+			right: 6px;
+			color: rgba($light, 0.8);
+			line-height: $stat-bar-height - 4;
+			height: 100%;
+			width: 20px;
+			&::before{
+				text-align: center;
+				width: 20px;
+				display: block;
+			}
+		}
+		//exceptions
 		&.health .stat-bar-inner {
-			background-color: rgba($red, 0.9);
+			background-color: rgba($red, 0.8);
 		}
 		&.energy .stat-bar-inner {
-			background-color: rgba($blue, 0.8);
+			background-color: rgba($blue, 0.7);
+		}
+		&:last-child {
+			border-bottom: $stat-bar-border;
+			@include border-radius(0, 0, 5px, 5px);
 		}
 	}
 }

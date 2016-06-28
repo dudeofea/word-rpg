@@ -116,8 +116,8 @@ function load_combat(player, enemy, game_screen){
 		ui_elem.className = "ui";
 		ship.grid = make_grid();
 		//health / energy bars
-		ship.health_bar = make_bar(100, 'health');
-		ship.energy_bar = make_bar(250, 'energy');
+		ship.health_bar = make_bar(100, 'health', 'heart');
+		ship.energy_bar = make_bar(250, 'energy', 'bolt');
 		//adding everything
 		ui_elem.appendChild(ship.grid.elem);
 		ui_elem.appendChild(ship.health_bar.elem);
@@ -167,7 +167,7 @@ function load_combat(player, enemy, game_screen){
 		return grid;
 	};
 	// --- make a colored bar
-	var make_bar = function(max, cla){
+	var make_bar = function(max, cla, icon_class){
 		var bar = {max: max, val: max};
 		//wrapper
 		var elem = document.createElement('div');
@@ -178,9 +178,13 @@ function load_combat(player, enemy, game_screen){
 		//text value
 		var text = document.createElement('p');
 		text.className = 'stat-bar-text';
+		//icon
+		var icon = document.createElement('i');
+		icon.className = "fa fa-"+icon_class;
 		//add all to wrapper
 		elem.appendChild(inner);
 		elem.appendChild(text);
+		elem.appendChild(icon);
 		bar.elem = elem;
 		bar.text_elem = text;
 		bar.inner_elem = inner;
