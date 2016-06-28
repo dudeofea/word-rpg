@@ -96,7 +96,6 @@ function gaussian(strength, radius, template){
 }
 
 //loads the combat screen between the player's ship and an enemy ship
-//TODO: add grid glitter animation to show that it exists
 function load_combat(player, enemy, game_screen){
 	console.log(player.name + ' vs ' + enemy.name);
 	// --- create the UI elements
@@ -111,14 +110,20 @@ function load_combat(player, enemy, game_screen){
 		var ship_elem = document.createElement('div');
 		ship_elem.className = "ship";
 		ship_elem.appendChild(ship.elem);
-		//the attack grid/matrix
+		//the ui portion
 		var ui_elem = document.createElement('div');
 		ui_elem.className = "ui";
+		//the ship name
+		var ship_name = document.createElement('p');
+		ship_name.className = "ship-name";
+		ship_name.innerHTML = ship.name;
+		//the attack grid/matrix
 		ship.grid = make_grid();
 		//health / energy bars
 		ship.health_bar = make_bar(100, 'health', 'heart');
 		ship.energy_bar = make_bar(250, 'energy', 'bolt');
 		//adding everything
+		ui_elem.appendChild(ship_name);
 		ui_elem.appendChild(ship.grid.elem);
 		ui_elem.appendChild(ship.health_bar.elem);
 		ui_elem.appendChild(ship.energy_bar.elem);
@@ -206,6 +211,9 @@ function load_combat(player, enemy, game_screen){
 	enemy.grid.defense = gaussian(0.5, 5, player.grid);
 	enemy.grid.refresh();
 	//TODO: --- setup attack events
+	//TODO: add grid glitter animation to show that it exists
+	//TODO: add control panel so user can edit their upcoming moves
+	//TODO: add enable/disable animation for control panel to indicate turns
 	// --- finally, add everything to screen
 	combat_screen.appendChild(player_ui);
 	combat_screen.appendChild(enemy_ui);
@@ -325,11 +333,6 @@ function gen_ship(name){
 	//		one big booster or several small ones
 	//TODO: draw space backgroud (with neat colors)
 	//TODO: draw stars, planets, dust, mist, etc
-	// --- draw ship name
-	ctx.fillStyle = "#FFF";
-	ctx.font = "10px Arial";
-	ctx.textAlign="center";
-	ctx.fillText(name,canvas.width/2,12);
 	console.log(ship);
 	ship.elem = canvas;
 	return ship;

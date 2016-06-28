@@ -47,6 +47,7 @@ html, body, .rpg-screen, .rpg-combat-screen {
 
 //combat screen
 .rpg-combat-screen {
+	$ship-title-height: 30px;
 	.player, .enemy {
 		height: 100%;
 		width: 50%;
@@ -58,6 +59,9 @@ html, body, .rpg-screen, .rpg-combat-screen {
 			margin: 0 auto;
 			display: block;
 			background-color: rgba(0,0,0,0.05);
+			border-left: 2px solid $light;
+			border-right: 2px solid $light;
+			box-sizing: border-box;
 		}
 		.ship, .ui {
 			height: 100%;
@@ -68,7 +72,26 @@ html, body, .rpg-screen, .rpg-combat-screen {
 			top: 0;
 			left: 0;
 		}
+		.ship .rpg-canvas {
+			margin-top: $ship-title-height;
+		}
 	}
+	//ship title
+	.ship-name {
+		max-width: 400px;
+		margin: 0 auto;
+		font-family: monospace;
+		color: $light;
+		height: $ship-title-height;
+		line-height: $ship-title-height;
+		text-align: center;
+		background-color: rgba($light, 0.5);
+		@include border-radius(5px, 5px, 0, 0);
+		border: 2px solid $light;
+		border-bottom: 0;
+		box-sizing: border-box;
+	}
+	//stat bars
 	$stat-bar-height: 25px;
 	$stat-bar-border: 2px solid rgba($light, 0.7);
 	.stat-bar {
