@@ -212,11 +212,27 @@ function load_combat(player, enemy, game_screen){
 	enemy.grid.refresh();
 	//TODO: --- setup attack events
 	//TODO: add grid glitter animation to show that it exists
-	//TODO: add control panel so user can edit their upcoming moves
+	// --- add control panel so user can edit their upcoming moves
+	var make_control_panel = function(ship){
+		var wrapper = document.createElement('div');
+		wrapper.className = "control-panel";
+		//title
+		var title = document.createElement('p');
+		title.className = "title";
+		title.innerHTML = "Modules";
+		//add everything
+		wrapper.appendChild(title);
+		return wrapper;
+	}
+	var control_panel = make_control_panel(player);
 	//TODO: add enable/disable animation for control panel to indicate turns
 	// --- finally, add everything to screen
-	combat_screen.appendChild(player_ui);
-	combat_screen.appendChild(enemy_ui);
+	var ships = document.createElement('div');
+	ships.className = "ships-wrapper";
+	ships.appendChild(player_ui);
+	ships.appendChild(enemy_ui);
+	combat_screen.appendChild(ships);
+	combat_screen.appendChild(control_panel);
 	game_screen.innerHTML = "";
 	game_screen.appendChild(combat_screen);
 }
@@ -299,8 +315,8 @@ function gen_ship(name){
 		}
 	}
 	// --- background
-	//ctx.fillStyle = color2;
-	//ctx.fillRect(0,0,canvas.width,canvas.height);
+	ctx.fillStyle = color2;
+	ctx.fillRect(0,0,canvas.width,canvas.height);
 	//large main body
 	var rects = [];
 	var peris = [];

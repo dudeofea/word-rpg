@@ -19,19 +19,27 @@ html,body,div,span,applet,object,iframe,a,abbr,acronym,address,big,cite,code,del
 	border-bottom-right-radius: $bottom;
 	border-bottom-left-radius: $left;
 }
+@mixin transform($args){
+	-webkit-transform: $args;
+	-moz-tranform: $args;
+	-ms-transform: $args;
+	-o-transform: $args;
+	transform: $args;
+}
+@mixin translate($x, $y) {
+	@include transform(translate($x, $y));
+}
 
 //color palette
 $black: #000;
-$dark: #011627;
-$light: #FDFFFC;
-$blue: #2EC4B6;
-$red: #E71D36;
+$dark: #19323C;
+$light: #F3F7F0;
+$blue: #0F7173;
+$red: #D72638;
 $orange: #FF9F1C;
 
 //fullscreen
 html, body, .rpg-screen, .rpg-combat-screen {
-	height: 100%;
-	width: 100%;
 	background-color: $dark;
 }
 
@@ -48,58 +56,69 @@ html, body, .rpg-screen, .rpg-combat-screen {
 //combat screen
 .rpg-combat-screen {
 	$ship-title-height: 30px;
+	$ship-ui-border: 3px solid darken($dark, 10);
+	.ships-wrapper {
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		padding: 0 30px 20px 30px;
+		box-sizing: border-box;
+	}
 	.player, .enemy {
-		height: 100%;
 		width: 50%;
-		float: left;
+		max-width: 350px;
+		display: inline-block;
 		position: relative;
+		box-sizing: border-box;
 		.rpg-canvas {
 			width: 100%;
-			max-width: 400px;
 			margin: 0 auto;
 			display: block;
 			background-color: rgba(0,0,0,0.05);
-			border-left: 2px solid $light;
-			border-right: 2px solid $light;
+			border-left: $ship-ui-border;
+			border-right: $ship-ui-border;
 			box-sizing: border-box;
 		}
 		.ship, .ui {
-			height: 100%;
 			width: 100%;
-			padding: 20px;
+			padding-top: $ship-title-height + 20px;
 			box-sizing: border-box;
 			position: absolute;
 			top: 0;
 			left: 0;
+			overflow: hidden;
 		}
-		.ship .rpg-canvas {
-			margin-top: $ship-title-height;
+		.ui {
+			position: relative;
 		}
 	}
 	//ship title
-	.ship-name {
-		max-width: 400px;
-		margin: 0 auto;
+	.ship-name, .title {
+		width: 100%;
+		top: 20px;
+		left: 50%;
+		@include translate(-50%, 0);
+		padding: 0 10px;
 		font-family: monospace;
 		color: $light;
 		height: $ship-title-height;
-		line-height: $ship-title-height;
-		text-align: center;
-		background-color: rgba($light, 0.5);
+		line-height: $ship-title-height - 4;
+		background-color: $black;
 		@include border-radius(5px, 5px, 0, 0);
-		border: 2px solid $light;
+		border: $ship-ui-border;
 		border-bottom: 0;
 		box-sizing: border-box;
+		position: absolute;
 	}
+	.title { top: 0; }
 	//stat bars
-	$stat-bar-height: 25px;
-	$stat-bar-border: 2px solid rgba($light, 0.7);
+	$stat-bar-height: 28px;
 	.stat-bar {
 		height: $stat-bar-height;
 		max-width: 400px;
 		margin: 0 auto;
 		box-sizing: border-box;
-		border: $stat-bar-border;
+		border: $ship-ui-border;
 		border-bottom: 0;
 		position: relative;
 		overflow: hidden;
@@ -116,11 +135,11 @@ html, body, .rpg-screen, .rpg-combat-screen {
 			font-family: monospace;
 			font-size: 14px;
 			font-weight: bold;
-			line-height: $stat-bar-height - 2;
+			line-height: $stat-bar-height - 4;
 			position: absolute;
 			top: 0;
 			left: 10px;
-			color: rgba($light, 0.8);
+			color: rgba($light, 0.9);
 			text-shadow: 1px 1px 0px rgba($black, 0.7);
 		}
 		//the icon
@@ -140,14 +159,23 @@ html, body, .rpg-screen, .rpg-combat-screen {
 		}
 		//exceptions
 		&.health .stat-bar-inner {
-			background-color: rgba($red, 0.8);
+			background-color: $red;
 		}
 		&.energy .stat-bar-inner {
-			background-color: rgba($blue, 0.7);
+			background-color: $blue;
 		}
 		&:last-child {
-			border-bottom: $stat-bar-border;
+			height: $stat-bar-height + 3;
+			border-bottom: $ship-ui-border;
 			@include border-radius(0, 0, 5px, 5px);
 		}
+	}
+	//control panel
+	.control-panel {
+		position: relative;
+		min-height: 400px;
+		margin: 0 30px 30px 30px;
+		background-color: rgba($black, 0.2);
+		@include border-radius(0, 0, 5px, 5px);
 	}
 }
