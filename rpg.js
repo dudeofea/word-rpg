@@ -50,7 +50,8 @@ domready(function init_rpg(){
 
 var global_vars = {
 	ship_canvas: {w: 200, h: 200},
-	grid_canvas: {w: 25, h: 25}
+	grid_canvas: {w: 25, h: 25},
+	item_canvas: {w: 50, h: 50}
 }
 
 //get a 0 - 1 range from a series of hex characters
@@ -120,8 +121,14 @@ function load_combat(player, enemy, game_screen){
 		//the attack grid/matrix
 		ship.grid = make_grid();
 		//health / energy bars
-		ship.health_bar = make_bar(100, 'health', 'heart');
-		ship.energy_bar = make_bar(250, 'energy', 'bolt');
+		ship.health_bar = make_bar(ship.hp_max, 'health', 'heart');
+		//calc max energy
+		ship.max_energy = 0;
+		var cells = ship.items_by_type('battery');
+		for (var i = 0; i < cells.length; i++) {
+			ship.max_energy += cells[i].max_energy;
+		}
+		ship.energy_bar = make_bar(ship.max_energy, 'energy', 'bolt');
 		//adding everything
 		ui_elem.appendChild(ship_name);
 		ui_elem.appendChild(ship.grid.elem);
@@ -344,6 +351,16 @@ function gen_ship(name){
 		//		into the main rectangle
 	}
 	draw_rects(rects);
+	//ship public methods
+	ship.items_by_type = function(type){
+		var ret = [];
+		for (var i = 0; i < this.items.length; i++) {
+			if(this.items[i].type == type){
+				ret.push(this.items[i]);
+			}
+		}
+		return ret;
+	}
 	//TODO: draw boosters on left of spaceship by spreading out
 	//		a fixed width of "flame" animation, so it shows up as
 	//		one big booster or several small ones
@@ -364,18 +381,59 @@ function gen_ship_stats(hash){
 	//      - level up boosts are how much stats grow per level.
 	//        ex: HP_BST, etc
 	//
-	// --- generate stats
+	// --- generate basic items
 	ship = {};
-	ship['e_max'] = hash.normalize(0, 4);
-	ship['thrp'] = hash.normalize(4, 4);
-	ship['hp_max'] = hash.normalize(8, 4);
+	ship['hp_max_val'] = hash.normalize(8, 4);
+	ship['hp_max_mul'] = 100;
 
+	var battery = gen_battery(hash.substring(0, 8), 1);
+
+	//normalize across max energy, throughput, and max health
+	var norm = {max_energy: battery.max_energy_val, throughput: battery.throughput_val, hp_max: ship.hp_max_val};
+	normalize_stats(norm, ['max_energy', 'throughput', 'hp_max']);
+	battery.max_energy_val = norm.max_energy;
+	battery.throughput_val = norm.throughput;
+	battery.max_energy = parseInt(battery.max_energy_mul * battery.max_energy_val);
+	battery.throughput = parseInt(battery.throughput_mul * battery.throughput_val);
+	ship.hp_max_val = norm.hp_max;
+	ship.hp_max = parseInt(ship.hp_max_mul * ship.hp_max_val);
+
+	//get stat boosts
 	ship['e_max_bst'] = hash.normalize(12, 4);
 	ship['thrp_bst'] = hash.normalize(16, 4);
 	ship['hp_max_bst'] = hash.normalize(20, 4);
-	//normalize across stats
-	normalize_stats(ship, ['e_max', 'thrp', 'hp_max']);
 	//normalize across stat boosts
 	normalize_stats(ship, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
+	//add the base items
+	ship.items = [battery];
 	return ship;
+}
+
+//Generates an item based on string hash
+//
+//	possible item types are:
+//
+//	- fuel cell, shield, solar panel, ion beam, overdrive,
+//	underdrive, shifter, reflector
+//
+function gen_item(name){
+	var hash = Sha256.hash(name);
+	return gen_battery(hash);
+}
+
+//generate a battery with a given hash
+function gen_battery(hash, level){
+	var item = {hash: hash, type: 'battery'};
+	//keep the multipliers/values in case we need them
+	item.max_energy_mul = 100 * level;
+	item.max_energy_val = hash.normalize(0, 4);
+	item.max_energy = parseInt(item.max_energy_val * item.max_energy_mul);
+	item.throughput_mul = 50 * level;
+	item.throughput_val = hash.normalize(4, 4);
+	item.throughput = parseInt(item.throughput_val * item.throughput_mul);
+	//reliability is proportional to the inverse of throughput
+	var rel = 0;	//TODO: this
+	//draw up a battery
+	item.elem = document.createElement('canvas');
+	return item;
 }
