@@ -227,8 +227,21 @@ function load_combat(player, enemy, game_screen){
 		var title = document.createElement('p');
 		title.className = "title";
 		title.innerHTML = "Modules";
+		//sections / navigation
+		var header = document.createElement('ul');
+		header.className = "tabs"
+		var power = document.createElement('li');
+		var defense = document.createElement('li');
+		var weapons = document.createElement('li');
+		power.innerHTML = "Power";
+		defense.innerHTML = "Defense";
+		weapons.innerHTML = "Weapons";
 		//add everything
+		header.appendChild(power);
+		header.appendChild(defense);
+		header.appendChild(weapons);
 		wrapper.appendChild(title);
+		wrapper.appendChild(header);
 		return wrapper;
 	}
 	var control_panel = make_control_panel(player);

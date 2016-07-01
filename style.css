@@ -2386,17 +2386,38 @@ html, body, .rpg-screen, .rpg-combat-screen {
   min-height: 400px;
   margin: 0 30px 30px 30px;
   background-color: rgba(0, 0, 0, 0.2);
-  -webkit-border-top-left-radius: 0;
-  -webkit-border-top-right-radius: 0;
-  -webkit-border-bottom-right-radius: 5px;
-  -webkit-border-bottom-left-radius: 5px;
-  -moz-border-radius-topleft: 0;
-  -moz-border-radius-topright: 0;
-  -moz-border-radius-bottomright: 5px;
-  -moz-border-radius-bottomleft: 5px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 5px;
-  border-bottom-left-radius: 5px; }
+  -webkit-border-top-left-radius: 8px;
+  -webkit-border-top-right-radius: 8px;
+  -webkit-border-bottom-right-radius: 8px;
+  -webkit-border-bottom-left-radius: 8px;
+  -moz-border-radius-topleft: 8px;
+  -moz-border-radius-topright: 8px;
+  -moz-border-radius-bottomright: 8px;
+  -moz-border-radius-bottomleft: 8px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border: 3px solid #0a1418;
+  box-sizing: border-box; }
+  .rpg-combat-screen .control-panel .title {
+    border: 0; }
+  .rpg-combat-screen .control-panel .tabs {
+    position: absolute;
+    top: 30px;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #869596;
+    border-bottom: 3px solid #65777b; }
+    .rpg-combat-screen .control-panel .tabs li {
+      float: left;
+      display: inline-block;
+      height: 40px;
+      line-height: 40px;
+      padding: 0 15px;
+      font-family: monospace;
+      background-color: #869596;
+      border-bottom: 3px solid #65777b;
+      margin-bottom: -3px; }
 
 /*# sourceMappingURL=style.css.map */

@@ -171,11 +171,36 @@ html, body, .rpg-screen, .rpg-combat-screen {
 		}
 	}
 	//control panel
+	$control-panel-light1: mix($light, $dark, 50%);
+	$control-panel-light2: mix($light, $dark, 35%);
+	$control-panel-height: 40px;
 	.control-panel {
 		position: relative;
 		min-height: 400px;
 		margin: 0 30px 30px 30px;
 		background-color: rgba($black, 0.2);
-		@include border-radius(0, 0, 5px, 5px);
+		@include border-radius(8px, 8px, 8px, 8px);
+		border: $ship-ui-border;
+		box-sizing: border-box;
+		.title { border: 0; }
+		.tabs {
+			position: absolute;
+			top: $ship-title-height;
+			width: 100%;
+			box-sizing: border-box;
+			background-color: $control-panel-light1;
+			border-bottom: 3px solid $control-panel-light2;
+			li {
+				float: left;
+				display: inline-block;
+				height: $control-panel-height;
+				line-height: $control-panel-height;
+				padding: 0 15px;
+				font-family: monospace;
+				background-color: $control-panel-light1;
+				border-bottom: 3px solid $control-panel-light2;
+				margin-bottom: -3px;
+			}
+		}
 	}
 }
