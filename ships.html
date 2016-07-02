@@ -11,9 +11,11 @@
 		var main_screen = document.createElement('div');
 		main_screen.className = "rpg-screen";
 		document.body.appendChild(main_screen);
-		var s1 = rpg.gen_ship('Zoikostra');
-		var s2 = rpg.gen_ship('Garanthuur');
-		rpg.load_combat(s1, s2, main_screen);
+		var names = ['Zoikostra', 'Garanthuur', 'Ijiklin', 'Bolom', 'Septfire', 'Thalanmir', 'Wawok', 'The Unamed One', 'Greysbane', 'Furyton', 'Rhyolsteros', 'Hastesfas'];
+		for (var i = 0; i < names.length; i++) {
+			var ship = rpg.gen_ship(names[i]);
+			main_screen.appendChild(rpg.ship.make_ui(ship, "player"));
+		}
 	}
 	</script>
 </head>

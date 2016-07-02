@@ -2257,20 +2257,13 @@ html, body, .rpg-screen, .rpg-combat-screen {
   -ms-interpolation-mode: nearest-neighbor;
   /* IE                            */ }
 
-.rpg-combat-screen .ships-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 30px 20px 30px;
-  box-sizing: border-box; }
-
-.rpg-combat-screen .player, .rpg-combat-screen .enemy {
+.ship-ui {
   width: 50%;
   max-width: 350px;
   display: inline-block;
   position: relative;
   box-sizing: border-box; }
-  .rpg-combat-screen .player .rpg-canvas, .rpg-combat-screen .enemy .rpg-canvas {
+  .ship-ui .rpg-canvas {
     width: 100%;
     margin: 0 auto;
     display: block;
@@ -2278,7 +2271,7 @@ html, body, .rpg-screen, .rpg-combat-screen {
     border-left: 3px solid #0a1418;
     border-right: 3px solid #0a1418;
     box-sizing: border-box; }
-  .rpg-combat-screen .player .ship, .rpg-combat-screen .player .ui, .rpg-combat-screen .enemy .ship, .rpg-combat-screen .enemy .ui {
+  .ship-ui .ship, .ship-ui .ui {
     width: 100%;
     padding-top: 50px;
     box-sizing: border-box;
@@ -2286,10 +2279,66 @@ html, body, .rpg-screen, .rpg-combat-screen {
     top: 0;
     left: 0;
     overflow: hidden; }
-  .rpg-combat-screen .player .ui, .rpg-combat-screen .enemy .ui {
+  .ship-ui .ui {
     position: relative; }
+  .ship-ui .stat-bar {
+    height: 28px;
+    max-width: 400px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    border: 3px solid #0a1418;
+    border-bottom: 0;
+    position: relative;
+    overflow: hidden;
+    background-color: #000; }
+    .ship-ui .stat-bar .stat-bar-inner {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background-color: rgba(243, 247, 240, 0.5); }
+    .ship-ui .stat-bar .stat-bar-text {
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 24px;
+      position: absolute;
+      top: 0;
+      left: 10px;
+      color: rgba(243, 247, 240, 0.9);
+      text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7); }
+    .ship-ui .stat-bar i {
+      position: absolute;
+      top: 0;
+      right: 6px;
+      color: rgba(243, 247, 240, 0.8);
+      line-height: 24px;
+      height: 100%;
+      width: 20px; }
+      .ship-ui .stat-bar i::before {
+        text-align: center;
+        width: 20px;
+        display: block; }
+    .ship-ui .stat-bar.health .stat-bar-inner {
+      background-color: #D72638; }
+    .ship-ui .stat-bar.energy .stat-bar-inner {
+      background-color: #0F7173; }
+    .ship-ui .stat-bar:last-child {
+      height: 31px;
+      border-bottom: 3px solid #0a1418;
+      -webkit-border-top-left-radius: 0;
+      -webkit-border-top-right-radius: 0;
+      -webkit-border-bottom-right-radius: 5px;
+      -webkit-border-bottom-left-radius: 5px;
+      -moz-border-radius-topleft: 0;
+      -moz-border-radius-topright: 0;
+      -moz-border-radius-bottomright: 5px;
+      -moz-border-radius-bottomleft: 5px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 5px;
+      border-bottom-left-radius: 5px; }
 
-.rpg-combat-screen .ship-name, .rpg-combat-screen .title {
+.ship-name, .title {
   width: 100%;
   top: 20px;
   left: 50%;
@@ -2321,65 +2370,15 @@ html, body, .rpg-screen, .rpg-combat-screen {
   box-sizing: border-box;
   position: absolute; }
 
-.rpg-combat-screen .title {
+.title {
   top: 0; }
 
-.rpg-combat-screen .stat-bar {
-  height: 28px;
-  max-width: 400px;
-  margin: 0 auto;
-  box-sizing: border-box;
-  border: 3px solid #0a1418;
-  border-bottom: 0;
-  position: relative;
-  overflow: hidden;
-  background-color: #000; }
-  .rpg-combat-screen .stat-bar .stat-bar-inner {
-    width: 100%;
-    height: 100%;
-    display: block;
-    background-color: rgba(243, 247, 240, 0.5); }
-  .rpg-combat-screen .stat-bar .stat-bar-text {
-    font-family: monospace;
-    font-size: 14px;
-    font-weight: bold;
-    line-height: 24px;
-    position: absolute;
-    top: 0;
-    left: 10px;
-    color: rgba(243, 247, 240, 0.9);
-    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7); }
-  .rpg-combat-screen .stat-bar i {
-    position: absolute;
-    top: 0;
-    right: 6px;
-    color: rgba(243, 247, 240, 0.8);
-    line-height: 24px;
-    height: 100%;
-    width: 20px; }
-    .rpg-combat-screen .stat-bar i::before {
-      text-align: center;
-      width: 20px;
-      display: block; }
-  .rpg-combat-screen .stat-bar.health .stat-bar-inner {
-    background-color: #D72638; }
-  .rpg-combat-screen .stat-bar.energy .stat-bar-inner {
-    background-color: #0F7173; }
-  .rpg-combat-screen .stat-bar:last-child {
-    height: 31px;
-    border-bottom: 3px solid #0a1418;
-    -webkit-border-top-left-radius: 0;
-    -webkit-border-top-right-radius: 0;
-    -webkit-border-bottom-right-radius: 5px;
-    -webkit-border-bottom-left-radius: 5px;
-    -moz-border-radius-topleft: 0;
-    -moz-border-radius-topright: 0;
-    -moz-border-radius-bottomright: 5px;
-    -moz-border-radius-bottomleft: 5px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 5px;
-    border-bottom-left-radius: 5px; }
+.rpg-combat-screen .ships-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 30px 20px 30px;
+  box-sizing: border-box; }
 
 .rpg-combat-screen .control-panel {
   position: relative;

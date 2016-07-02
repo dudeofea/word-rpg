@@ -2,16 +2,7 @@ var domready = require("domready");
 var convert = require('color-convert');
 
 //use the body as our main game window
-domready(function init_rpg(){
-	//make div to hold all screens
-	var main_screen = document.createElement('div');
-	main_screen.className = "rpg-screen";
-	document.body.appendChild(main_screen);
-	// var names = ['Zoikostra', 'Garanthuur', 'Ijiklin', 'Bolom', 'Septfire', 'Thalanmir', 'Wawok', 'The Unamed One', 'Greysbane', 'Furyton', 'Rhyolsteros', 'Hastesfas'];
-	var s1 = gen_ship('Zoikostra');
-	var s2 = gen_ship('Garanthuur');
-	load_combat(s1, s2, main_screen);
-});
+domready(function(){ init_rpg(); });
 
 //Ideas for game mechanics:
 //
@@ -96,121 +87,127 @@ function gaussian(strength, radius, template){
 	return arr;
 }
 
+rpg = {};
+rpg.ship = {};
+
+//makes a ui for player / enemy
+rpg.ship.make_ui = function(ship, cla){
+	//to hold everything
+	var wrapper = document.createElement('div');
+	wrapper.className = cla + " ship-ui";
+	//the actual ship
+	var ship_elem = document.createElement('div');
+	ship_elem.className = "ship";
+	ship_elem.appendChild(ship.elem);
+	//the ui portion
+	var ui_elem = document.createElement('div');
+	ui_elem.className = "ui";
+	//the ship name
+	var ship_name = document.createElement('p');
+	ship_name.className = "ship-name";
+	ship_name.innerHTML = ship.name;
+	//the attack grid/matrix
+	ship.grid = rpg.ship.make_grid();
+	//health / energy bars
+	ship.health_bar = rpg.ship.make_bar(ship.hp_max, 'health', 'heart');
+	//calc max energy
+	ship.max_energy = 0;
+	var cells = ship.items_by_type('battery');
+	for (var i = 0; i < cells.length; i++) {
+		ship.max_energy += cells[i].max_energy;
+	}
+	ship.energy_bar = rpg.ship.make_bar(ship.max_energy, 'energy', 'bolt');
+	//adding everything
+	ui_elem.appendChild(ship_name);
+	ui_elem.appendChild(ship.grid.elem);
+	ui_elem.appendChild(ship.health_bar.elem);
+	ui_elem.appendChild(ship.energy_bar.elem);
+	wrapper.appendChild(ship_elem);
+	wrapper.appendChild(ui_elem);
+	return wrapper;
+}
+
+// --- make the attack / defend grids
+rpg.ship.make_grid = function(){
+	var grid = {};
+	var canvas = document.createElement('canvas');
+	canvas.className = "rpg-canvas";
+	canvas.width = global_vars.grid_canvas.w;
+	canvas.height = global_vars.grid_canvas.h;
+	grid.ctx = canvas.getContext('2d');
+	grid.defense = Array.apply(null, Array(canvas.width*canvas.height)).map(Number.prototype.valueOf, 0);
+	grid.framebuffer = grid.ctx.createImageData(canvas.width, canvas.height);
+	//colorize
+	var data = grid.framebuffer.data;
+	for (var i = 0; i < data.length; i += 4) {
+		data[i]	  = 255;
+		data[i+1] = 255;
+		data[i+2] = 255;
+		data[i+3] = 0;
+	}
+	//when damage is inflicted
+	grid.damage = function(dmg, x, y, callback){
+		this.defense[y*this.elem.width+x] -= dmg;
+		this.refresh();
+		//TODO: make extra canvas layer and fade with CSS transition
+	}
+	//when refreshing value
+	grid.refresh = function(){
+		var data = this.framebuffer.data;
+		for (var i = 0; i < this.defense.length; i++) {
+			data[i*4+3] = this.defense[i];
+		}
+		this.ctx.putImageData(this.framebuffer, 0, 0);
+	}
+	canvas.onmousedown = function(e){
+		var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
+		var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
+		grid.damage(15, grid_x, grid_y);
+	}
+	grid.elem = canvas;
+	return grid;
+};
+
+// --- make a colored bar
+rpg.ship.make_bar = function(max, cla, icon_class){
+	var bar = {max: max, val: max};
+	//wrapper
+	var elem = document.createElement('div');
+	elem.className = "stat-bar "+cla;
+	//variable bar
+	var inner = document.createElement('span');
+	inner.className = "stat-bar-inner";
+	//text value
+	var text = document.createElement('p');
+	text.className = 'stat-bar-text';
+	//icon
+	var icon = document.createElement('i');
+	icon.className = "fa fa-"+icon_class;
+	//add all to wrapper
+	elem.appendChild(inner);
+	elem.appendChild(text);
+	elem.appendChild(icon);
+	bar.elem = elem;
+	bar.text_elem = text;
+	bar.inner_elem = inner;
+	//on refresh
+	bar.refresh = function(){
+		this.text_elem.innerHTML = this.max + ' / ' + this.val;
+		this.inner_elem.style.width = 100 * this.val / this.max + '%';
+	}
+	bar.refresh();
+	return bar;
+};
+
 //loads the combat screen between the player's ship and an enemy ship
-function load_combat(player, enemy, game_screen){
+rpg.load_combat = function(player, enemy, game_screen){
 	console.log(player.name + ' vs ' + enemy.name);
 	// --- create the UI elements
 	var combat_screen = document.createElement('div');
 	combat_screen.className = "rpg-combat-screen";
-	//makes a ui for player / enemy
-	var make_ui = function(ship, cla){
-		//to hold everything
-		var wrapper = document.createElement('div');
-		wrapper.className = cla;
-		//the actual ship
-		var ship_elem = document.createElement('div');
-		ship_elem.className = "ship";
-		ship_elem.appendChild(ship.elem);
-		//the ui portion
-		var ui_elem = document.createElement('div');
-		ui_elem.className = "ui";
-		//the ship name
-		var ship_name = document.createElement('p');
-		ship_name.className = "ship-name";
-		ship_name.innerHTML = ship.name;
-		//the attack grid/matrix
-		ship.grid = make_grid();
-		//health / energy bars
-		ship.health_bar = make_bar(ship.hp_max, 'health', 'heart');
-		//calc max energy
-		ship.max_energy = 0;
-		var cells = ship.items_by_type('battery');
-		for (var i = 0; i < cells.length; i++) {
-			ship.max_energy += cells[i].max_energy;
-		}
-		ship.energy_bar = make_bar(ship.max_energy, 'energy', 'bolt');
-		//adding everything
-		ui_elem.appendChild(ship_name);
-		ui_elem.appendChild(ship.grid.elem);
-		ui_elem.appendChild(ship.health_bar.elem);
-		ui_elem.appendChild(ship.energy_bar.elem);
-		wrapper.appendChild(ship_elem);
-		wrapper.appendChild(ui_elem);
-		return wrapper;
-	}
-	// --- make the attack / defend grids
-	var make_grid = function(){
-		var grid = {};
-		var canvas = document.createElement('canvas');
-		canvas.className = "rpg-canvas";
-		canvas.width = global_vars.grid_canvas.w;
-		canvas.height = global_vars.grid_canvas.h;
-		grid.ctx = canvas.getContext('2d');
-		grid.defense = Array.apply(null, Array(canvas.width*canvas.height)).map(Number.prototype.valueOf, 0);
-		grid.framebuffer = grid.ctx.createImageData(canvas.width, canvas.height);
-		//colorize
-		var data = grid.framebuffer.data;
-		for (var i = 0; i < data.length; i += 4) {
-			data[i]	  = 255;
-			data[i+1] = 255;
-			data[i+2] = 255;
-			data[i+3] = 0;
-		}
-		//when damage is inflicted
-		grid.damage = function(dmg, x, y, callback){
-			this.defense[y*this.elem.width+x] -= dmg;
-			this.refresh();
-			//TODO: make extra canvas layer and fade with CSS transition
-		}
-		//when refreshing value
-		grid.refresh = function(){
-			var data = this.framebuffer.data;
-			for (var i = 0; i < this.defense.length; i++) {
-				data[i*4+3] = this.defense[i];
-			}
-			this.ctx.putImageData(this.framebuffer, 0, 0);
-		}
-		canvas.onmousedown = function(e){
-			var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
-			var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
-			grid.damage(15, grid_x, grid_y);
-		}
-		grid.elem = canvas;
-		return grid;
-	};
-	// --- make a colored bar
-	var make_bar = function(max, cla, icon_class){
-		var bar = {max: max, val: max};
-		//wrapper
-		var elem = document.createElement('div');
-		elem.className = "stat-bar "+cla;
-		//variable bar
-		var inner = document.createElement('span');
-		inner.className = "stat-bar-inner";
-		//text value
-		var text = document.createElement('p');
-		text.className = 'stat-bar-text';
-		//icon
-		var icon = document.createElement('i');
-		icon.className = "fa fa-"+icon_class;
-		//add all to wrapper
-		elem.appendChild(inner);
-		elem.appendChild(text);
-		elem.appendChild(icon);
-		bar.elem = elem;
-		bar.text_elem = text;
-		bar.inner_elem = inner;
-		//on refresh
-		bar.refresh = function(){
-			this.text_elem.innerHTML = this.max + ' / ' + this.val;
-			this.inner_elem.style.width = 100 * this.val / this.max + '%';
-		}
-		bar.refresh();
-		return bar;
-	};
 	// --- make the uis
-	var player_ui = make_ui(player, 'player');
-	var enemy_ui = make_ui(enemy, 'enemy');
+	var player_ui = rpg.ship.make_ui(player, 'player');
+	var enemy_ui = rpg.ship.make_ui(enemy, 'enemy');
 	// --- set shields to max value
 	//for now just show gaussian distribution
 	player.grid.defense = gaussian(0.7, 5, player.grid);
@@ -258,7 +255,7 @@ function load_combat(player, enemy, game_screen){
 }
 
 //generate a ship based off a string
-function gen_ship(name){
+rpg.gen_ship = function(name){
 	var hash = Sha256.hash(name);
 	var ship = {};
 	// --- generate stats
