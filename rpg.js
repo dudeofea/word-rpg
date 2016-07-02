@@ -428,7 +428,11 @@ function gen_ship_stats(hash){
 //
 rpg.gen_item = function(name, level){
 	var hash = Sha256.hash(name);
-	var item = gen_battery(hash, level);
+	var generators = [gen_battery, gen_shield];
+	//get item type
+	var i = parseInt(hash.normalize(16, 4)*generators.length);
+	console.log(i);
+	var item = generators[i](hash, level);
 	item.name = name;
 	return item;
 }
@@ -445,7 +449,28 @@ function gen_battery(hash, level){
 	item.throughput = parseInt(item.throughput_val * item.throughput_mul);
 	//reliability is proportional to the inverse of throughput
 	var rel = 0;	//TODO: this
-	//draw up a battery
+	//TODO: draw up a battery
+	var canvas = document.createElement('canvas');
+	canvas.className = "rpg-canvas";
+	canvas.width = global_vars.item_canvas.w;
+	canvas.height = global_vars.item_canvas.h;
+	item.elem = canvas;
+	return item;
+}
+
+//generate a shield with a given hash
+function gen_shield(hash, level){
+	var item = {hash: hash, type: 'shield', name_suffix: 'shield'};
+	//keep the multipliers/values in case we need them
+	item.max_shield_mul = 1000 * level;
+	item.max_shield_val = hash.normalize(0, 4);
+	item.max_shield = parseInt(item.max_shield_val * item.max_shield_mul);
+	item.charge_rate_mul = 500 * level;
+	item.charge_rate_val = hash.normalize(4, 4);
+	item.charge_rate = parseInt(item.charge_rate_val * item.charge_rate_mul);
+	//reliability is proportional to the inverse of charge_rate and max shield
+	var rel = 0;	//TODO: this
+	//TODO: draw up a shield
 	var canvas = document.createElement('canvas');
 	canvas.className = "rpg-canvas";
 	canvas.width = global_vars.item_canvas.w;
@@ -476,6 +501,17 @@ rpg.item.make_ui = function(item){
 			var p2 = document.createElement('p');
 			p2.className = "fa-tachometer";
 			p2.innerHTML = item.throughput;
+			desc.appendChild(p1);
+			desc.appendChild(document.createElement('br'));
+			desc.appendChild(p2);
+			break;
+		case 'shield':
+			var p1 = document.createElement('p');
+			p1.className = "fa-shield";
+			p1.innerHTML = item.max_shield;
+			var p2 = document.createElement('p');
+			p2.className = "fa-exchange";
+			p2.innerHTML = item.charge_rate;
 			desc.appendChild(p1);
 			desc.appendChild(document.createElement('br'));
 			desc.appendChild(p2);
