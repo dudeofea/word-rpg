@@ -2338,7 +2338,7 @@ html, body, .rpg-screen, .rpg-combat-screen {
       border-bottom-right-radius: 5px;
       border-bottom-left-radius: 5px; }
 
-.ship-name, .title {
+.ship-ui .ship-name, .control-panel .title {
   width: 100%;
   top: 20px;
   left: 50%;
@@ -2370,7 +2370,7 @@ html, body, .rpg-screen, .rpg-combat-screen {
   box-sizing: border-box;
   position: absolute; }
 
-.title {
+.control-panel .title {
   top: 0; }
 
 .rpg-combat-screen .ships-wrapper {
@@ -2418,5 +2418,60 @@ html, body, .rpg-screen, .rpg-combat-screen {
       background-color: #869596;
       border-bottom: 3px solid #65777b;
       margin-bottom: -3px; }
+
+.item-thumb {
+  position: relative;
+  margin: 10px;
+  padding: 10px 10px 10px 110px;
+  box-sizing: border-box;
+  width: 300px;
+  height: 100px;
+  display: inline-block;
+  background-color: #0d0d0d;
+  color: #F3F7F0;
+  font-family: monospace;
+  -webkit-border-top-left-radius: 5px;
+  -webkit-border-top-right-radius: 5px;
+  -webkit-border-bottom-right-radius: 5px;
+  -webkit-border-bottom-left-radius: 5px;
+  -moz-border-radius-topleft: 5px;
+  -moz-border-radius-topright: 5px;
+  -moz-border-radius-bottomright: 5px;
+  -moz-border-radius-bottomleft: 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px; }
+  .item-thumb .fa-bolt {
+    color: #0F7173; }
+  .item-thumb .fa-tachometer {
+    color: #159da0; }
+  .item-thumb .title {
+    font-size: 16px;
+    text-transform: capitalize; }
+  .item-thumb .description {
+    margin-top: 10px; }
+    .item-thumb .description p {
+      font-size: 18px;
+      line-height: 24px;
+      display: inline-block;
+      position: relative;
+      text-align: right;
+      padding-right: 20px; }
+      .item-thumb .description p:before {
+        display: block;
+        position: absolute;
+        right: 0;
+        -webkit-transform: translate(50%, 0);
+        -moz-tranform: translate(50%, 0);
+        -ms-transform: translate(50%, 0);
+        -o-transform: translate(50%, 0);
+        transform: translate(50%, 0); }
+  .item-thumb .rpg-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: rgba(243, 247, 240, 0.1); }
 
 /*# sourceMappingURL=style.css.map */

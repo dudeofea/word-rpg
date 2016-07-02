@@ -146,7 +146,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 }
 
 //ship title
-.ship-name, .title {
+.ship-ui .ship-name, .control-panel .title {
 	width: 100%;
 	top: 20px;
 	left: 50%;
@@ -163,7 +163,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	box-sizing: border-box;
 	position: absolute;
 }
-.title { top: 0; }
+.control-panel .title { top: 0; }
 
 //combat screen
 .rpg-combat-screen {
@@ -206,5 +206,55 @@ $ship-ui-border: 3px solid darken($dark, 10);
 				margin-bottom: -3px;
 			}
 		}
+	}
+}
+
+// --- item ui ---
+
+//item thumbnail (seen on module control panel)
+.item-thumb {
+	position: relative;
+	margin: 10px;
+	padding: 10px 10px 10px 110px;
+	box-sizing: border-box;
+	width: 300px;
+	height: 100px;
+	display: inline-block;
+	background-color: lighten($black, 5);
+	color: $light;
+	font-family: monospace;
+	@include border-radius(5px, 5px, 5px, 5px);
+	//color code based on property type
+	.fa-bolt { color: $blue; }
+	.fa-tachometer { color: lighten($blue, 10); }
+	//text fields
+	.title {
+		font-size: 16px;
+		text-transform: capitalize;
+	}
+	.description {
+		margin-top: 10px;
+		p {
+			font-size: 18px;
+			line-height: 24px;
+			display: inline-block;
+			position: relative;
+			text-align: right;
+			padding-right: 20px;
+			&:before {
+				display: block;
+				position: absolute;
+				right: 0;
+				@include translate(50%, 0);
+			}
+		}
+	}
+	//item view
+	.rpg-canvas {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		background-color: rgba($light, 0.1);
 	}
 }

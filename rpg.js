@@ -426,14 +426,16 @@ function gen_ship_stats(hash){
 //	- fuel cell, shield, solar panel, ion beam, overdrive,
 //	underdrive, shifter, reflector
 //
-function gen_item(name){
+rpg.gen_item = function(name, level){
 	var hash = Sha256.hash(name);
-	return gen_battery(hash);
+	var item = gen_battery(hash, level);
+	item.name = name;
+	return item;
 }
 
 //generate a battery with a given hash
 function gen_battery(hash, level){
-	var item = {hash: hash, type: 'battery'};
+	var item = {hash: hash, type: 'battery', name_suffix: 'cell'};
 	//keep the multipliers/values in case we need them
 	item.max_energy_mul = 100 * level;
 	item.max_energy_val = hash.normalize(0, 4);
@@ -444,6 +446,44 @@ function gen_battery(hash, level){
 	//reliability is proportional to the inverse of throughput
 	var rel = 0;	//TODO: this
 	//draw up a battery
-	item.elem = document.createElement('canvas');
+	var canvas = document.createElement('canvas');
+	canvas.className = "rpg-canvas";
+	canvas.width = global_vars.item_canvas.w;
+	canvas.height = global_vars.item_canvas.h;
+	item.elem = canvas;
 	return item;
 }
+
+rpg.item = {};
+
+//Make the ui (thumbnail portion) of an item
+rpg.item.make_ui = function(item){
+	var wrapper = document.createElement('div');
+	wrapper.className = "item-thumb "+item.type;
+	//name of item
+	var title = document.createElement('p');
+	title.className = "title";
+	title.innerHTML = item.name + ' ' + item.name_suffix;
+	//show 1-2 lines of description, depending on item type
+	var desc = document.createElement('div');
+	desc.className = "description";
+	console.log(item);
+	switch (item.type) {
+		case 'battery':
+			var p1 = document.createElement('p');
+			p1.className = "fa-bolt";
+			p1.innerHTML = item.max_energy;
+			var p2 = document.createElement('p');
+			p2.className = "fa-tachometer";
+			p2.innerHTML = item.throughput;
+			desc.appendChild(p1);
+			desc.appendChild(document.createElement('br'));
+			desc.appendChild(p2);
+			break;
+	}
+	//add everything
+	wrapper.appendChild(item.elem);
+	wrapper.appendChild(title);
+	wrapper.appendChild(desc);
+	return wrapper;
+};
