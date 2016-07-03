@@ -428,7 +428,7 @@ function gen_ship_stats(hash){
 //
 rpg.gen_item = function(name, level){
 	var hash = Sha256.hash(name);
-	var generators = [gen_battery, gen_shield];
+	var generators = [gen_battery, gen_shield, gen_weapon];
 	//get item type
 	var i = parseInt(hash.normalize(16, 4)*generators.length);
 	console.log(i);
@@ -479,6 +479,27 @@ function gen_shield(hash, level){
 	return item;
 }
 
+//generate a weapon with a given hash
+function gen_weapon(hash, level){
+	var item = {hash: hash, type: 'weapon', name_suffix: 'pistol'};
+	//keep the multipliers/values in case we need them
+	item.damage_mul = 30 * level;
+	item.damage_val = hash.normalize(0, 4);
+	item.damage = parseInt(item.damage_val * item.damage_mul);
+	item.accuracy_mul = 100 * level;
+	item.accuracy_val = hash.normalize(4, 4);
+	item.accuracy = parseInt(item.accuracy_val * item.accuracy_mul);
+	//reliability is proportional to the inverse of damage and proportional to accuracy
+	var rel = 0;	//TODO: this
+	//TODO: draw up a shield
+	var canvas = document.createElement('canvas');
+	canvas.className = "rpg-canvas";
+	canvas.width = global_vars.item_canvas.w;
+	canvas.height = global_vars.item_canvas.h;
+	item.elem = canvas;
+	return item;
+}
+
 rpg.item = {};
 
 //Make the ui (thumbnail portion) of an item
@@ -512,6 +533,17 @@ rpg.item.make_ui = function(item){
 			var p2 = document.createElement('p');
 			p2.className = "fa-exchange";
 			p2.innerHTML = item.charge_rate;
+			desc.appendChild(p1);
+			desc.appendChild(document.createElement('br'));
+			desc.appendChild(p2);
+			break;
+		case 'weapon':
+			var p1 = document.createElement('p');
+			p1.className = "fa-certificate";
+			p1.innerHTML = item.damage;
+			var p2 = document.createElement('p');
+			p2.className = "fa-crosshairs";
+			p2.innerHTML = item.accuracy;
 			desc.appendChild(p1);
 			desc.appendChild(document.createElement('br'));
 			desc.appendChild(p2);

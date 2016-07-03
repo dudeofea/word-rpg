@@ -2446,6 +2446,14 @@ html, body, .rpg-screen, .rpg-combat-screen {
     color: #0F7173; }
   .item-thumb .fa-tachometer {
     color: #159da0; }
+  .item-thumb .fa-shield {
+    color: #6320EE; }
+  .item-thumb .fa-exchange {
+    color: #844ff2; }
+  .item-thumb .fa-certificate {
+    color: #FF9F1C; }
+  .item-thumb .fa-crosshairs {
+    color: #ffbf69; }
   .item-thumb .title {
     font-size: 16px;
     text-transform: capitalize; }

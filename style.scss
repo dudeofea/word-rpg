@@ -37,6 +37,7 @@ $light: #F3F7F0;
 $blue: #0F7173;
 $red: #D72638;
 $orange: #FF9F1C;
+$purple: #6320EE;
 
 //fullscreen
 html, body, .rpg-screen, .rpg-combat-screen {
@@ -227,6 +228,10 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	//color code based on property type
 	.fa-bolt { color: $blue; }
 	.fa-tachometer { color: lighten($blue, 10); }
+	.fa-shield { color: $purple; }
+	.fa-exchange { color: lighten($purple, 10); }
+	.fa-certificate { color: $orange; }
+	.fa-crosshairs { color: lighten($orange, 15); }
 	//text fields
 	.title {
 		font-size: 16px;
