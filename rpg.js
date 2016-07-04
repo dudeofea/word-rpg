@@ -42,7 +42,7 @@ domready(function(){ init_rpg(); });
 var global_vars = {
 	ship_canvas: {w: 200, h: 200},
 	grid_canvas: {w: 25, h: 25},
-	item_canvas: {w: 50, h: 50}
+	item_canvas: {w: 80, h: 80}
 }
 
 //get a 0 - 1 range from a series of hex characters
@@ -85,6 +85,11 @@ function gaussian(strength, radius, template){
 		}
 	}
 	return arr;
+}
+
+//linearly interpolate between two values with a 0-1 normalized value
+function lerp(start, end, value){
+	return start + (end - start)*value;
 }
 
 rpg = {};
@@ -201,7 +206,7 @@ rpg.ship.make_bar = function(max, cla, icon_class){
 
 //loads the combat screen between the player's ship and an enemy ship
 rpg.load_combat = function(player, enemy, game_screen){
-	console.log(player.name + ' vs ' + enemy.name);
+	//console.log(player.name + ' vs ' + enemy.name);
 	// --- create the UI elements
 	var combat_screen = document.createElement('div');
 	combat_screen.className = "rpg-combat-screen";
@@ -376,7 +381,7 @@ rpg.gen_ship = function(name){
 	//		one big booster or several small ones
 	//TODO: draw space backgroud (with neat colors)
 	//TODO: draw stars, planets, dust, mist, etc
-	console.log(ship);
+	//console.log(ship);
 	ship.elem = canvas;
 	return ship;
 }
@@ -431,7 +436,7 @@ rpg.gen_item = function(name, level){
 	var generators = [gen_battery, gen_shield, gen_weapon];
 	//get item type
 	var i = parseInt(hash.normalize(16, 4)*generators.length);
-	console.log(i);
+	//console.log(i);
 	var item = generators[i](hash, level);
 	item.name = name;
 	return item;
@@ -455,6 +460,37 @@ function gen_battery(hash, level){
 	canvas.width = global_vars.item_canvas.w;
 	canvas.height = global_vars.item_canvas.h;
 	item.elem = canvas;
+	var ctx = canvas.getContext('2d');
+	//pick between 1 - 5 partitions
+	var part_num = parseInt(Math.ceil(hash.normalize(10, 8) * 5));
+	console.log('partitions: ', part_num);
+	//get height of partitions (margins / dividers are fixed)
+	var part_h = (canvas.width - 2 * 10 - (part_num - 1) * 5)/part_num;
+	console.log('width: ', part_h);
+	//pick a radius (up to 50% of height, and at least 3px)
+	var radius = hash.normalize(30, 4) * part_h / 2 + 3;
+	//pick a width (at least same as height+5 or up to canvas.width-2*10)
+	if(part_h < canvas.width - 20){
+		var part_w = lerp(part_h+5, canvas.width - 40, hash.normalize(14, 6));
+	}else{
+		var part_w = lerp(20, canvas.width - 40, hash.normalize(14, 6));
+	}
+	//pick some colors
+	var a = 60*(hash.normalize(11, 4) - 0.5);
+	var b = 60*(hash.normalize(44, 4) - 0.5);
+	var color1_hsl = convert.lab.hsl(30, a, b);
+	color1_hsl[1] /= 6;
+	color1_hsl[2] += 15;
+	var color1 = '#'+convert.hsl.hex(color1_hsl);
+	var color2 = '#'+convert.lab.hex(2, a, b);
+	//draw the partitions
+	for (var i = 0; i < part_num - 1; i++) {
+		rpg.draw.rounded_rect(ctx, (canvas.width - part_w + 8)/2, i*(part_h+5)+18, part_w - 8, part_h + 4, 0, color2);
+	}
+	//draw the partitions
+	for (var i = 0; i < part_num; i++) {
+		rpg.draw.rounded_rect(ctx, (canvas.width - part_w)/2, i*(part_h+5)+10, part_w, part_h, radius, color1);
+	}
 	return item;
 }
 
@@ -513,7 +549,6 @@ rpg.item.make_ui = function(item){
 	//show 1-2 lines of description, depending on item type
 	var desc = document.createElement('div');
 	desc.className = "description";
-	console.log(item);
 	switch (item.type) {
 		case 'battery':
 			var p1 = document.createElement('p');
@@ -522,9 +557,6 @@ rpg.item.make_ui = function(item){
 			var p2 = document.createElement('p');
 			p2.className = "fa-tachometer";
 			p2.innerHTML = item.throughput;
-			desc.appendChild(p1);
-			desc.appendChild(document.createElement('br'));
-			desc.appendChild(p2);
 			break;
 		case 'shield':
 			var p1 = document.createElement('p');
@@ -533,9 +565,6 @@ rpg.item.make_ui = function(item){
 			var p2 = document.createElement('p');
 			p2.className = "fa-exchange";
 			p2.innerHTML = item.charge_rate;
-			desc.appendChild(p1);
-			desc.appendChild(document.createElement('br'));
-			desc.appendChild(p2);
 			break;
 		case 'weapon':
 			var p1 = document.createElement('p');
@@ -544,14 +573,38 @@ rpg.item.make_ui = function(item){
 			var p2 = document.createElement('p');
 			p2.className = "fa-crosshairs";
 			p2.innerHTML = item.accuracy;
-			desc.appendChild(p1);
-			desc.appendChild(document.createElement('br'));
-			desc.appendChild(p2);
 			break;
 	}
 	//add everything
+	desc.appendChild(p1);
+	desc.appendChild(document.createElement('br'));
+	desc.appendChild(p2);
 	wrapper.appendChild(item.elem);
 	wrapper.appendChild(title);
 	wrapper.appendChild(desc);
 	return wrapper;
 };
+
+//
+//	Drawing functions for canvases
+//
+rpg.draw = {};
+
+//draw a rectangle with rounded edges of given size
+//thanks to http://stackoverflow.com/a/3368118
+rpg.draw.rounded_rect = function(ctx, x, y, w, h, rad, fill){
+	ctx.fillStyle = fill;
+	//do rectangle portion (minus corners)
+	ctx.beginPath();
+	ctx.moveTo(x + rad, y);
+	ctx.lineTo(x + w - rad, y);
+	ctx.quadraticCurveTo(x + w, y, x + w, y + rad);
+	ctx.lineTo(x + w, y + h - rad);
+	ctx.quadraticCurveTo(x + w, y + h, x + w - rad, y + h);
+	ctx.lineTo(x + rad, y + h);
+	ctx.quadraticCurveTo(x, y + h, x, y + h - rad);
+	ctx.lineTo(x, y + rad);
+	ctx.quadraticCurveTo(x, y, x + rad, y);
+	ctx.closePath();
+	ctx.fill();
+}
