@@ -454,7 +454,7 @@ function gen_battery(hash, level){
 	item.throughput = parseInt(item.throughput_val * item.throughput_mul);
 	//reliability is proportional to the inverse of throughput
 	var rel = 0;	//TODO: this
-	//TODO: draw up a battery
+	//draw up a battery (style 1)
 	var canvas = document.createElement('canvas');
 	canvas.className = "rpg-canvas";
 	canvas.width = global_vars.item_canvas.w;
@@ -463,10 +463,10 @@ function gen_battery(hash, level){
 	var ctx = canvas.getContext('2d');
 	//pick between 1 - 5 partitions
 	var part_num = parseInt(Math.ceil(hash.normalize(10, 8) * 5));
-	console.log('partitions: ', part_num);
+	//console.log('partitions: ', part_num);
 	//get height of partitions (margins / dividers are fixed)
 	var part_h = (canvas.width - 2 * 10 - (part_num - 1) * 5)/part_num;
-	console.log('width: ', part_h);
+	//console.log('width: ', part_h);
 	//pick a radius (up to 50% of height, and at least 3px)
 	var radius = hash.normalize(30, 4) * part_h / 2 + 3;
 	//pick a width (at least same as height+5 or up to canvas.width-2*10)
@@ -478,7 +478,7 @@ function gen_battery(hash, level){
 	//pick some colors
 	var a = 60*(hash.normalize(11, 4) - 0.5);
 	var b = 60*(hash.normalize(44, 4) - 0.5);
-	var color1_hsl = convert.lab.hsl(30, a, b);
+	var color1_hsl = convert.lab.hsl(40, a, b);
 	color1_hsl[1] /= 6;
 	color1_hsl[2] += 15;
 	var color1 = '#'+convert.hsl.hex(color1_hsl);
@@ -506,12 +506,30 @@ function gen_shield(hash, level){
 	item.charge_rate = parseInt(item.charge_rate_val * item.charge_rate_mul);
 	//reliability is proportional to the inverse of charge_rate and max shield
 	var rel = 0;	//TODO: this
-	//TODO: draw up a shield
+	//TODO: draw up a shield (radial style 1)
 	var canvas = document.createElement('canvas');
 	canvas.className = "rpg-canvas";
 	canvas.width = global_vars.item_canvas.w;
 	canvas.height = global_vars.item_canvas.h;
 	item.elem = canvas;
+	var ctx = canvas.getContext('2d');
+	//pick some colors
+	var a = 60*(hash.normalize(54, 4) - 0.5);
+	var b = 60*(hash.normalize(2, 4) - 0.5);
+	var color1 = '#' + convert.lab.hex(40, a, b);
+	var color2 = '#' + convert.lab.hex(30, a, b);
+	//make a ring
+	var thick = 20*hash.normalize(7, 4);
+	rpg.draw.ring(ctx, canvas.width/2, canvas.height/2, 10, 10+thick, color1);
+	//add a certain number of struts
+	var certain_num = 2 + parseInt(Math.ceil(7*hash.normalize(12, 8)));
+	for (var i = 0; i < certain_num; i++) {
+		var ang = 2*(i/certain_num)*Math.PI
+		var x = (10+thick/2)*Math.sin(ang);
+		var y = -(10+thick/2)*Math.cos(ang);
+		rpg.draw.rounded_rect_rot(ctx,
+			canvas.width/2+x, canvas.height/2+y, 5, 10, 2, ang, color2);
+	}
 	return item;
 }
 
@@ -593,18 +611,54 @@ rpg.draw = {};
 //draw a rectangle with rounded edges of given size
 //thanks to http://stackoverflow.com/a/3368118
 rpg.draw.rounded_rect = function(ctx, x, y, w, h, rad, fill){
-	ctx.fillStyle = fill;
-	//do rectangle portion (minus corners)
 	ctx.beginPath();
-	ctx.moveTo(x + rad, y);
-	ctx.lineTo(x + w - rad, y);
-	ctx.quadraticCurveTo(x + w, y, x + w, y + rad);
-	ctx.lineTo(x + w, y + h - rad);
-	ctx.quadraticCurveTo(x + w, y + h, x + w - rad, y + h);
-	ctx.lineTo(x + rad, y + h);
-	ctx.quadraticCurveTo(x, y + h, x, y + h - rad);
-	ctx.lineTo(x, y + rad);
-	ctx.quadraticCurveTo(x, y, x + rad, y);
+	ctx.moveTo(x + rad, y);									//top left
+	ctx.lineTo(x + w - rad, y);								//top right
+	ctx.quadraticCurveTo(x + w, y, x + w, y + rad);			//top right corner
+	ctx.lineTo(x + w, y + h - rad);							//bottom right
+	ctx.quadraticCurveTo(x + w, y + h, x + w - rad, y + h);	//bottom right corner
+	ctx.lineTo(x + rad, y + h);								//bottom left
+	ctx.quadraticCurveTo(x, y + h, x, y + h - rad);			//bottom left corner
+	ctx.lineTo(x, y + rad);									//top left
+	ctx.quadraticCurveTo(x, y, x + rad, y);					//top left corner
 	ctx.closePath();
+	ctx.fillStyle = fill;
 	ctx.fill();
+}
+
+//draw a rotated rounded_rect (rotation in degrees)
+//note the x and y in this case are the centerpoint of the rect
+rpg.draw.rounded_rect_rot = function(ctx, cx, cy, w, h, rad, rot, fill){
+	ctx.save();
+	//move the rotation point to the center of the rect
+    ctx.translate(cx, cy);
+	//...and rotate
+	ctx.rotate(rot);
+	//draw the rect
+	this.rounded_rect(ctx, -w/2, -h/2, w, h, rad, fill);
+	//undo everything
+	ctx.restore();
+}
+
+//draw a ring with a certain inner/outer radius
+rpg.draw.ring = function(ctx, x, y, rad1, rad2, fill){
+	//ensure rad2 > rad1
+	if(rad1 > rad2){ rad2 = [rad1, rad1 = rad2][0]; }
+	//make a temp canvas
+	var tmp_canvas = document.createElement('canvas');
+	tmp_canvas.width = 2*rad2;
+	tmp_canvas.height = 2*rad2;
+	var tmp_ctx = tmp_canvas.getContext('2d');
+	//draw the large circle
+	tmp_ctx.beginPath();
+	tmp_ctx.arc(rad2, rad2, rad2, 0, 2*Math.PI);
+	tmp_ctx.fillStyle = fill;
+	tmp_ctx.fill();
+	//cut out the inner circle
+	tmp_ctx.beginPath();
+	tmp_ctx.arc(rad2, rad2, rad1, 0, 2*Math.PI);
+	tmp_ctx.globalCompositeOperation = "xor";
+	tmp_ctx.fill();
+	//copy to actual canvas
+	ctx.drawImage(tmp_canvas, x-rad2, y-rad2);
 }
