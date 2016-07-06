@@ -232,6 +232,10 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	.fa-exchange { color: lighten($purple, 10); }
 	.fa-certificate { color: $orange; }
 	.fa-crosshairs { color: lighten($orange, 15); }
+	//color by item type
+	&.battery .title { color: lighten($blue, 55); }
+	&.shield .title { color: lighten($purple, 30); }
+	&.weapon .title { color: lighten($orange, 30); }
 	//text fields
 	.title {
 		font-size: 16px;

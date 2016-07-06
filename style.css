@@ -2454,6 +2454,12 @@ html, body, .rpg-screen, .rpg-combat-screen {
     color: #FF9F1C; }
   .item-thumb .fa-crosshairs {
     color: #ffbf69; }
+  .item-thumb.battery .title {
+    color: #a7f2f4; }
+  .item-thumb.shield .title {
+    color: #c6aef9; }
+  .item-thumb.weapon .title {
+    color: #ffe0b5; }
   .item-thumb .title {
     font-size: 16px;
     text-transform: capitalize; }
