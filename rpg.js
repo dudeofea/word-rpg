@@ -521,6 +521,8 @@ function gen_shield(hash, level){
 	//make a ring
 	var thick = 20*hash.normalize(7, 4);
 	rpg.draw.ring(ctx, canvas.width/2, canvas.height/2, 10, 10+thick, color1);
+	//TODO: correlate struts with charge speed
+	//TODO: correlate ring size with shield radius
 	//add a certain number of struts
 	var certain_num = 2 + parseInt(Math.ceil(7*hash.normalize(12, 8)));
 	for (var i = 0; i < certain_num; i++) {
@@ -561,6 +563,7 @@ function gen_weapon(hash, level){
 	for (var i = 0; i < stripes; i++) {
 		colors.push('#' + convert.lab.hex(50-8*i, a, b));
 	}
+	//TODO: correlate barrel width with accuracy
 	//define size
 	var w = parseInt(25 + 20*hash.normalize(45, 6));
 	var h = parseInt(15 + 10*hash.normalize(22, 6));
