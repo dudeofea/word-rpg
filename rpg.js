@@ -506,7 +506,7 @@ function gen_shield(hash, level){
 	item.charge_rate = parseInt(item.charge_rate_val * item.charge_rate_mul);
 	//reliability is proportional to the inverse of charge_rate and max shield
 	var rel = 0;	//TODO: this
-	//TODO: draw up a shield (radial style 1)
+	//draw up a shield (radial style 1)
 	var canvas = document.createElement('canvas');
 	canvas.className = "rpg-canvas";
 	canvas.width = global_vars.item_canvas.w;
@@ -535,7 +535,7 @@ function gen_shield(hash, level){
 
 //generate a weapon with a given hash
 function gen_weapon(hash, level){
-	var item = {hash: hash, type: 'weapon', name_suffix: 'pistol'};
+	var item = {hash: hash, type: 'weapon', name_suffix: 'cannon'};
 	//keep the multipliers/values in case we need them
 	item.damage_mul = 30 * level;
 	item.damage_val = hash.normalize(0, 4);
@@ -545,12 +545,44 @@ function gen_weapon(hash, level){
 	item.accuracy = parseInt(item.accuracy_val * item.accuracy_mul);
 	//reliability is proportional to the inverse of damage and proportional to accuracy
 	var rel = 0;	//TODO: this
-	//TODO: draw up a shield
+	//draw up a weapon (basic rect style)
 	var canvas = document.createElement('canvas');
 	canvas.className = "rpg-canvas";
 	canvas.width = global_vars.item_canvas.w;
 	canvas.height = global_vars.item_canvas.h;
 	item.elem = canvas;
+	var ctx = canvas.getContext('2d');
+	//pick a number of stripes
+	var stripes = 1 + parseInt(Math.ceil(3*hash.normalize(33, 5)))
+	//pick some colors
+	var a = 60*(hash.normalize(13, 4) - 0.2);
+	var b = 60*(hash.normalize(19, 4) - 0.5);
+	var colors = [];
+	for (var i = 0; i < stripes; i++) {
+		colors.push('#' + convert.lab.hex(50-8*i, a, b));
+	}
+	//define size
+	var w = parseInt(25 + 20*hash.normalize(45, 6));
+	var h = parseInt(15 + 10*hash.normalize(22, 6));
+	var barrel_w = parseInt(8 + 15*hash.normalize(60, 4));
+	var top_left = {x: parseInt((canvas.width-w-barrel_w)/2), y: parseInt((canvas.height-h)/2)};
+	//add outline
+	ctx.fillStyle = '#' + convert.lab.hex(80, a, b);
+	ctx.fillRect(top_left.x-2, top_left.y-2, w+4, h+4);
+	//draw main body
+	ctx.fillStyle = colors[0];
+	ctx.fillRect(top_left.x, top_left.y, w, h);
+	//draw exhaust panels (or stripes)
+	for (var i = stripes; i > 0; i--) {
+		ctx.fillStyle = colors[i-1];
+		ctx.fillRect(top_left.x+5*(stripes-i), top_left.y, 5, h);
+	}
+	//draw gun barrel
+	var barrel_color = '#' + convert.lab.hex(3, a, 10);
+	ctx.fillStyle = '#' + convert.lab.hex(80, a, b);
+	ctx.fillRect(top_left.x+w-4, parseInt(top_left.y+h/2-6), barrel_w, 13);
+	ctx.fillStyle = '#' + convert.lab.hex(20, a, b);
+	ctx.fillRect(top_left.x+w+barrel_w-7, parseInt(top_left.y+h/2-5), 4, 11);
 	return item;
 }
 
