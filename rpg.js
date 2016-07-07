@@ -204,6 +204,61 @@ rpg.ship.make_bar = function(max, cla, icon_class){
 	return bar;
 };
 
+// make control panel so user can edit their upcoming moves
+rpg.ship.make_control_panel = function(ship){
+	var wrapper = document.createElement('div');
+	wrapper.className = "control-panel";
+	//title
+	var title = document.createElement('p');
+	title.className = "title";
+	title.innerHTML = "Modules";
+	//sections / navigation
+	var header = document.createElement('ul');
+	header.className = "tabs"
+	var header_back = document.createElement('li');
+	header_back.className = "tabs-background";
+	header.appendChild(header_back);
+	//setup tabs
+	var tabs = {'Power': {}, 'Defense': {}, 'Weapons': {}};
+	for (var t in tabs) {
+		if (tabs.hasOwnProperty(t)) {
+			tabs[t].elem = document.createElement('li');
+			var tab_title = document.createElement('p');
+			var selected = document.createElement('input');
+			var content_wrapper = document.createElement('div');
+			tabs[t].content = document.createElement('div');
+			tab_title.className = "tab-title";
+			tab_title.innerHTML = t;
+			selected.type = "radio";
+			selected.name = "tab-select";
+			selected.value = t;
+			selected.checked = t == 'Power';
+			content_wrapper.className = "tab-content-wrapper";
+			tabs[t].content.className = "tab-content";
+			content_wrapper.appendChild(tabs[t].content);
+			tabs[t].elem.appendChild(selected);
+			tabs[t].elem.appendChild(tab_title);
+			header.appendChild(tabs[t].elem);
+			header.appendChild(content_wrapper);
+		}
+	}
+	// --- add power tab content
+	var batteries = document.createElement('div');
+	batteries.className = "batteries";
+	var cells = ship.items_by_type('battery');
+	for (var i = 0; i < cells.length; i++) {
+		var item = rpg.item.make_ui(cells[i]);
+		batteries.appendChild(item);
+	}
+	tabs['Power'].content.appendChild(batteries)
+	//TODO: show current ship items
+	//TODO: navigate between tabs
+	//add everything else
+	wrapper.appendChild(title);
+	wrapper.appendChild(header);
+	return wrapper;
+}
+
 //loads the combat screen between the player's ship and an enemy ship
 rpg.load_combat = function(player, enemy, game_screen){
 	//console.log(player.name + ' vs ' + enemy.name);
@@ -221,32 +276,8 @@ rpg.load_combat = function(player, enemy, game_screen){
 	enemy.grid.refresh();
 	//TODO: --- setup attack events
 	//TODO: add grid glitter animation to show that it exists
-	// --- add control panel so user can edit their upcoming moves
-	var make_control_panel = function(ship){
-		var wrapper = document.createElement('div');
-		wrapper.className = "control-panel";
-		//title
-		var title = document.createElement('p');
-		title.className = "title";
-		title.innerHTML = "Modules";
-		//sections / navigation
-		var header = document.createElement('ul');
-		header.className = "tabs"
-		var power = document.createElement('li');
-		var defense = document.createElement('li');
-		var weapons = document.createElement('li');
-		power.innerHTML = "Power";
-		defense.innerHTML = "Defense";
-		weapons.innerHTML = "Weapons";
-		//add everything
-		header.appendChild(power);
-		header.appendChild(defense);
-		header.appendChild(weapons);
-		wrapper.appendChild(title);
-		wrapper.appendChild(header);
-		return wrapper;
-	}
-	var control_panel = make_control_panel(player);
+	//add a control panel so user can set up their attack / defense
+	var control_panel = rpg.ship.make_control_panel(player);
 	//TODO: add enable/disable animation for control panel to indicate turns
 	// --- finally, add everything to screen
 	var ships = document.createElement('div');
