@@ -14,6 +14,9 @@ domready(function(){ init_rpg(); });
 //	  one ship to another
 //	- gaining XP also trickles down into your other ships when returning to
 //	  your ship hangar (probably just a fixed amount)
+//	- use "attack bar" between ships and modules to show the attack sequence and
+//	  who's turn it is. This way adding local 2-player multiplayer is easy as we
+//	  just use the same bar.
 //
 
 //Lore:
@@ -90,6 +93,16 @@ function gaussian(strength, radius, template){
 //linearly interpolate between two values with a 0-1 normalized value
 function lerp(start, end, value){
 	return start + (end - start)*value;
+}
+
+//create an element, with a class and content
+function elem(tag, cla, content){
+	var e = document.createElement(tag);
+	e.className = cla;
+	if(typeof content != "undefined"){
+		e.innerHTML = content;
+	}
+	return e;
 }
 
 rpg = {};
@@ -259,6 +272,30 @@ rpg.ship.make_control_panel = function(ship){
 	return wrapper;
 }
 
+//draws up an attack bar to queue up attack sequences
+rpg.make_attack_bar = function(){
+	var wrapper = document.createElement('div');
+	wrapper.className = "attack-bar";
+	var ready1 = elem('p', "attack-button left", 'READY');
+	var ready2 = elem('p', "attack-button right waiting", 'WAITING');
+	//TODO: add chevrons
+	var elems = [];
+	for (var i = 0; i < 5; i++) {
+		elems.push(elem('span', 'chevron-right chevron-right-'+i));
+	}
+	elems.push(elem('p', 'engage', 'ENGAGE'));
+	for (var i = 0; i < 5; i++) {
+		elems.push(elem('span', 'chevron-left chevron-left-'+(5-i-1)));
+	}
+	//add everything
+	wrapper.appendChild(ready1);
+	for (var i = 0; i < elems.length; i++) {
+		wrapper.appendChild(elems[i]);
+	}
+	wrapper.appendChild(ready2);
+	return wrapper;
+}
+
 //loads the combat screen between the player's ship and an enemy ship
 rpg.load_combat = function(player, enemy, game_screen){
 	//console.log(player.name + ' vs ' + enemy.name);
@@ -276,6 +313,8 @@ rpg.load_combat = function(player, enemy, game_screen){
 	enemy.grid.refresh();
 	//TODO: --- setup attack events
 	//TODO: add grid glitter animation to show that it exists
+	//add an attack bar for sequencing turns
+	var attack_bar = rpg.make_attack_bar();
 	//add a control panel so user can set up their attack / defense
 	var control_panel = rpg.ship.make_control_panel(player);
 	//TODO: add enable/disable animation for control panel to indicate turns
@@ -285,6 +324,7 @@ rpg.load_combat = function(player, enemy, game_screen){
 	ships.appendChild(player_ui);
 	ships.appendChild(enemy_ui);
 	combat_screen.appendChild(ships);
+	combat_screen.appendChild(attack_bar);
 	combat_screen.appendChild(control_panel);
 	game_screen.innerHTML = "";
 	game_screen.appendChild(combat_screen);

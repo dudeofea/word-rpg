@@ -147,7 +147,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 }
 
 //ship title
-.ship-ui .ship-name, .control-panel .title {
+.ship-ui .ship-name, .control-panel > .title {
 	width: 100%;
 	top: 20px;
 	left: 50%;
@@ -164,7 +164,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	box-sizing: border-box;
 	position: absolute;
 }
-.control-panel .title { top: 0; }
+.control-panel > .title { top: 0; }
 
 //combat screen
 .rpg-combat-screen {
@@ -242,6 +242,59 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			.tab-content {
 				padding-top: $control-panel-height + $ship-title-height + 3;
 				box-sizing: border-box;
+			}
+		}
+	}
+	$attack-bar-height: 30px;
+	.attack-bar {
+		margin: 0 30px 20px 30px;
+		padding: 0 200px;
+		height: $attack-bar-height;
+		background-color: $orange;
+		border: $ship-ui-border;
+		@include border-radius(5px, 5px, 5px, 5px);
+		position: relative;
+		display: flex;
+		justify-content: center;
+		//TODO: add about 5 chevrons each side, fill out bar width
+		* {
+			display: inline-block;
+			height: $attack-bar-height;
+			line-height: $attack-bar-height;
+		}
+		.left, .right {
+			position: absolute;
+			display: block;
+			width: 200px;
+			text-align: center;
+			left: 0;
+		}
+		.right {
+			left: auto;
+			right: 0;
+		}
+		.engage {
+			background-color: darken($orange, 25);
+			padding: 0 30px;
+		}
+		.chevron-right, .chevron-left {
+			display: block;
+			height: 0;
+			width: 0;
+			border-style: solid;
+			border-width: $attack-bar-height/2 0 $attack-bar-height/2 $attack-bar-height;
+		}
+		.chevron-left {
+			border-width: $attack-bar-height/2 $attack-bar-height $attack-bar-height/2 0;
+		}
+		//generate border colors
+		$len: 5;
+		@for $i from 0 through $len - 1 {
+			.chevron-left-#{$i} {
+				border-color: darken($orange, ($i + 1)*5) darken($orange, $i*5) darken($orange, ($i + 1)*5) transparent;
+			}
+			.chevron-right-#{$i} {
+				border-color: darken($orange, ($i + 1)*5) transparent darken($orange, ($i + 1)*5) darken($orange, $i*5);
 			}
 		}
 	}
