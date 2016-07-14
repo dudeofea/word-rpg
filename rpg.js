@@ -232,26 +232,26 @@ rpg.ship.make_control_panel = function(ship){
 	header_back.className = "tabs-background";
 	header.appendChild(header_back);
 	//setup tabs
-	var tabs = {'Power': {}, 'Defense': {}, 'Weapons': {}};
+	var tabs = {'Power': {color: 'blue'}, 'Defense': {color: 'red'}, 'Weapons': {color: 'orange'}};
 	for (var t in tabs) {
 		if (tabs.hasOwnProperty(t)) {
-			tabs[t].elem = document.createElement('li');
 			var tab_title = document.createElement('p');
 			var selected = document.createElement('input');
 			var content_wrapper = document.createElement('div');
 			tabs[t].content = document.createElement('div');
-			tab_title.className = "tab-title";
+			//set class / types / tab name
+			tab_title.className = "tab-title "+tabs[t].color;
 			tab_title.innerHTML = t;
 			selected.type = "radio";
 			selected.name = "tab-select";
 			selected.value = t;
-			selected.checked = t == 'Power';
+			selected.checked = (t == 'Power');
 			content_wrapper.className = "tab-content-wrapper";
 			tabs[t].content.className = "tab-content";
+			//add everything to header
 			content_wrapper.appendChild(tabs[t].content);
-			tabs[t].elem.appendChild(selected);
-			tabs[t].elem.appendChild(tab_title);
-			header.appendChild(tabs[t].elem);
+			header.appendChild(selected);
+			header.appendChild(tab_title);
 			header.appendChild(content_wrapper);
 		}
 	}
@@ -472,7 +472,12 @@ function gen_ship_stats(hash){
 	ship['hp_max_val'] = hash.normalize(8, 4);
 	ship['hp_max_mul'] = 100;
 
-	var battery = gen_battery(hash.substring(0, 8), 1);
+	var battery = gen_battery(hash, 1);
+	battery.name = "Starter";
+	var shield = gen_shield(hash, 1);
+	shield.name = "Starter";
+	var weapon = gen_weapon(hash, 1);
+	weapon.name = "Starter";
 
 	//normalize across max energy, throughput, and max health
 	var norm = {max_energy: battery.max_energy_val, throughput: battery.throughput_val, hp_max: ship.hp_max_val};
@@ -491,7 +496,7 @@ function gen_ship_stats(hash){
 	//normalize across stat boosts
 	normalize_stats(ship, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
 	//add the base items
-	ship.items = [battery];
+	ship.items = [battery, shield, weapon];
 	return ship;
 }
 
