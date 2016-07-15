@@ -236,7 +236,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 				opacity: 1;
 			}
 			//highlight colors
-			input[type=radio]:checked + .tab-title.red { color: darken($red, 10); }
+			input[type=radio]:checked + .tab-title.purple { color: darken($purple, 10); }
 			input[type=radio]:checked + .tab-title.blue { color: darken($blue, 6); }
 			input[type=radio]:checked + .tab-title.orange { color: darken($orange, 5); }
 			//tab content

@@ -2440,8 +2440,8 @@ html, body, .rpg-screen, .rpg-combat-screen {
       border-color: #19323C; }
     .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title + .tab-content-wrapper .tab-content {
       opacity: 1; }
-    .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title.red {
-      color: #ac1e2d; }
+    .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title.purple {
+      color: #4d10cb; }
     .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title.blue {
       color: #0b5658; }
     .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title.orange {

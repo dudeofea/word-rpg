@@ -219,6 +219,7 @@ rpg.ship.make_bar = function(max, cla, icon_class){
 
 // make control panel so user can edit their upcoming moves
 rpg.ship.make_control_panel = function(ship){
+	//TODO: add power bar to left of control panel to show energy left, about to be used by this turn
 	var wrapper = document.createElement('div');
 	wrapper.className = "control-panel";
 	//title
@@ -232,7 +233,7 @@ rpg.ship.make_control_panel = function(ship){
 	header_back.className = "tabs-background";
 	header.appendChild(header_back);
 	//setup tabs
-	var tabs = {'Power': {color: 'blue'}, 'Defense': {color: 'red'}, 'Weapons': {color: 'orange'}};
+	var tabs = {'Power': {color: 'blue'}, 'Defense': {color: 'purple'}, 'Weapons': {color: 'orange'}};
 	for (var t in tabs) {
 		if (tabs.hasOwnProperty(t)) {
 			var tab_title = document.createElement('p');
@@ -255,7 +256,7 @@ rpg.ship.make_control_panel = function(ship){
 			header.appendChild(content_wrapper);
 		}
 	}
-	// --- add power tab content
+	// --- power tab content
 	var batteries = document.createElement('div');
 	batteries.className = "batteries";
 	var cells = ship.items_by_type('battery');
@@ -264,6 +265,24 @@ rpg.ship.make_control_panel = function(ship){
 		batteries.appendChild(item);
 	}
 	tabs['Power'].content.appendChild(batteries)
+	// --- defense tab content
+	var shields = document.createElement('div');
+	shields.className = "defense";
+	var cells = ship.items_by_type('shield');
+	for (var i = 0; i < cells.length; i++) {
+		var item = rpg.item.make_ui(cells[i]);
+		shields.appendChild(item);
+	}
+	tabs['Defense'].content.appendChild(shields)
+	// --- weapons tab content
+	var weapons = document.createElement('div');
+	weapons.className = "weapons";
+	var cells = ship.items_by_type('weapon');
+	for (var i = 0; i < cells.length; i++) {
+		var item = rpg.item.make_ui(cells[i]);
+		weapons.appendChild(item);
+	}
+	tabs['Weapons'].content.appendChild(weapons)
 	//TODO: show current ship items
 	//TODO: navigate between tabs
 	//add everything else
@@ -273,12 +292,12 @@ rpg.ship.make_control_panel = function(ship){
 }
 
 //draws up an attack bar to queue up attack sequences
-rpg.make_attack_bar = function(){
+rpg.make_attack_bar = function(attack_cb){
 	var wrapper = document.createElement('div');
 	wrapper.className = "attack-bar";
 	var ready1 = elem('p', "attack-button left", 'READY');
 	var ready2 = elem('p', "attack-button right waiting", 'WAITING');
-	//TODO: add chevrons
+	//add chevrons
 	var elems = [];
 	for (var i = 0; i < 5; i++) {
 		elems.push(elem('span', 'chevron-right chevron-right-'+i));
@@ -287,6 +306,8 @@ rpg.make_attack_bar = function(){
 	for (var i = 0; i < 5; i++) {
 		elems.push(elem('span', 'chevron-left chevron-left-'+(5-i-1)));
 	}
+	//click to start engagement
+	ready1.onclick = attack_cb;
 	//add everything
 	wrapper.appendChild(ready1);
 	for (var i = 0; i < elems.length; i++) {
@@ -314,7 +335,21 @@ rpg.load_combat = function(player, enemy, game_screen){
 	//TODO: --- setup attack events
 	//TODO: add grid glitter animation to show that it exists
 	//add an attack bar for sequencing turns
-	var attack_bar = rpg.make_attack_bar();
+	var attack_bar = rpg.make_attack_bar(function onattack(){
+		//TODO: check and throttle energy usage if above max throughput
+		//run the player items
+		for (var i = 0; i < player.items.length; i++) {
+			player.energy -= player.items[i].run(player);
+		}
+		//run the enemy items
+		for (var i = 0; i < enemy.items.length; i++) {
+			enemy.energy -= enemy.items[i].run(enemy);
+		}
+		//TODO: check for lose/win conditions
+		//refresh both ship views
+		player.refresh();
+		enemy.refresh();
+	});
 	//add a control panel so user can set up their attack / defense
 	var control_panel = rpg.ship.make_control_panel(player);
 	//TODO: add enable/disable animation for control panel to indicate turns
@@ -437,7 +472,8 @@ rpg.gen_ship = function(name){
 		//		into the main rectangle
 	}
 	draw_rects(rects);
-	//ship public methods
+	// --- ship public methods
+	//get all ship items of a type
 	ship.items_by_type = function(type){
 		var ret = [];
 		for (var i = 0; i < this.items.length; i++) {
@@ -446,6 +482,22 @@ rpg.gen_ship = function(name){
 			}
 		}
 		return ret;
+	}
+	//run a function for all items of a type
+	ship.for_item_type = function(type, cb){
+		var items = this.items_by_type(type);
+		for (var i = 0; i < items.length; i++) {
+			var ret = cb(items[i]);
+			if(ret != null){ items[i] = ret; }
+		}
+	}
+	//refresh all things related to a ship (health bar, energy, etc)
+	ship.refresh = function(){
+		this.energy_bar.val = this.energy;
+		this.energy_bar.refresh();
+		this.health_bar.val = this.hp;
+		this.health_bar.refresh();
+		this.grid.refresh();
 	}
 	//TODO: draw boosters on left of spaceship by spreading out
 	//		a fixed width of "flame" animation, so it shows up as
@@ -488,6 +540,9 @@ function gen_ship_stats(hash){
 	battery.throughput = parseInt(battery.throughput_mul * battery.throughput_val);
 	ship.hp_max_val = norm.hp_max;
 	ship.hp_max = parseInt(ship.hp_max_mul * ship.hp_max_val);
+	ship.hp = ship.hp_max;
+	ship.energy_max = battery.max_energy;
+	ship.energy = ship.energy_max;
 
 	//get stat boosts
 	ship['e_max_bst'] = hash.normalize(12, 4);
@@ -567,6 +622,8 @@ function gen_battery(hash, level){
 	for (var i = 0; i < part_num; i++) {
 		rpg.draw.rounded_rect(ctx, (canvas.width - part_w)/2, i*(part_h+5)+10, part_w, part_h, radius, color1);
 	}
+	//consumes no energy
+	item.run = function(){ return 0; }
 	return item;
 }
 
@@ -608,6 +665,17 @@ function gen_shield(hash, level){
 		rpg.draw.rounded_rect_rot(ctx,
 			canvas.width/2+x, canvas.height/2+y, 5, 10, 2, ang, color2);
 	}
+	//be a shield
+	item.run = function(ship){
+		//TODO: add modifiers
+		//TODO: be a shield
+		//TODO: add a weighted version of the shield to the ship's grid
+		for (var i = 0; i < ship.grid.defense.length; i++) {
+			ship.grid.defense[i] += 5;
+		}
+		//energy consumption related to charge rate
+		return parseInt(this.charge_rate/100);
+	};
 	return item;
 }
 
@@ -662,6 +730,13 @@ function gen_weapon(hash, level){
 	ctx.fillRect(top_left.x+w-4, parseInt(top_left.y+h/2-6), barrel_w, 13);
 	ctx.fillStyle = '#' + convert.lab.hex(20, a, b);
 	ctx.fillRect(top_left.x+w+barrel_w-7, parseInt(top_left.y+h/2-5), 4, 11);
+	//be a gun
+	item.run = function(){
+		//TODO: add modifiers
+		//TODO: be a gun
+		//energy consumption related to damage
+		return parseInt(this.damage/10);
+	}
 	return item;
 }
 
