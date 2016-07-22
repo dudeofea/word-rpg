@@ -234,6 +234,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			}
 			input[type=radio]:checked + .tab-title + .tab-content-wrapper .tab-content {
 				opacity: 1;
+				pointer-events: all;
 			}
 			//highlight colors
 			input[type=radio]:checked + .tab-title.purple { color: darken($purple, 10); }
@@ -254,7 +255,6 @@ $ship-ui-border: 3px solid darken($dark, 10);
 				height: 100%;
 				bottom: 0;
 				opacity: 0;
-				pointer-events: all;
 			}
 		}
 	}
@@ -325,6 +325,8 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	height: 100px;
 	display: inline-block;
 	background-color: lighten($black, 5);
+	overflow: hidden;
+	border: 1px solid transparent;
 	color: $light;
 	font-family: monospace;
 	@include border-radius(5px, 5px, 5px, 5px);
@@ -368,5 +370,9 @@ $ship-ui-border: 3px solid darken($dark, 10);
 		left: 0;
 		height: 100%;
 		background-color: rgba($light, 0.1);
+	}
+	//on select
+	&.selected {
+		border-color: $light;
 	}
 }

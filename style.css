@@ -2439,7 +2439,8 @@ html, body, .rpg-screen, .rpg-combat-screen {
     .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title {
       border-color: #19323C; }
     .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title + .tab-content-wrapper .tab-content {
-      opacity: 1; }
+      opacity: 1;
+      pointer-events: all; }
     .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title.purple {
       color: #4d10cb; }
     .rpg-combat-screen .control-panel .tabs input[type=radio]:checked + .tab-title.blue {
@@ -2458,8 +2459,7 @@ html, body, .rpg-screen, .rpg-combat-screen {
       width: 100%;
       height: 100%;
       bottom: 0;
-      opacity: 0;
-      pointer-events: all; }
+      opacity: 0; }
 
 .rpg-combat-screen .attack-bar {
   margin: 0 30px 20px 30px;
@@ -2536,6 +2536,8 @@ html, body, .rpg-screen, .rpg-combat-screen {
   height: 100px;
   display: inline-block;
   background-color: #0d0d0d;
+  overflow: hidden;
+  border: 1px solid transparent;
   color: #F3F7F0;
   font-family: monospace;
   -webkit-border-top-left-radius: 5px;
@@ -2595,5 +2597,7 @@ html, body, .rpg-screen, .rpg-combat-screen {
     left: 0;
     height: 100%;
     background-color: rgba(243, 247, 240, 0.1); }
+  .item-thumb.selected {
+    border-color: #F3F7F0; }
 
 /*# sourceMappingURL=style.css.map */

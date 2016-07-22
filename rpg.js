@@ -256,12 +256,26 @@ rpg.ship.make_control_panel = function(ship){
 			header.appendChild(content_wrapper);
 		}
 	}
+	//on item select event
+	var item_select = function(){
+		console.log(this.classList);
+		//unselect previous
+		var prev = document.getElementsByClassName('selected');
+		for (var i = 0; i < prev.length; i++) {
+			prev[i].classList.remove('selected');
+		}
+		//select our element
+		this.classList.add("selected");
+	};
 	// --- power tab content
 	var batteries = document.createElement('div');
 	batteries.className = "batteries";
 	var cells = ship.items_by_type('battery');
 	for (var i = 0; i < cells.length; i++) {
 		var item = rpg.item.make_ui(cells[i]);
+		item.index = ship.items.indexOf(cells[i]);
+		item.onclick = item_select;
+		cells[i].ui_elem = item;
 		batteries.appendChild(item);
 	}
 	tabs['Power'].content.appendChild(batteries)
@@ -271,6 +285,9 @@ rpg.ship.make_control_panel = function(ship){
 	var cells = ship.items_by_type('shield');
 	for (var i = 0; i < cells.length; i++) {
 		var item = rpg.item.make_ui(cells[i]);
+		item.index = ship.items.indexOf(cells[i]);
+		item.onclick = item_select;
+		cells[i].ui_elem = item;
 		shields.appendChild(item);
 	}
 	tabs['Defense'].content.appendChild(shields)
@@ -280,6 +297,9 @@ rpg.ship.make_control_panel = function(ship){
 	var cells = ship.items_by_type('weapon');
 	for (var i = 0; i < cells.length; i++) {
 		var item = rpg.item.make_ui(cells[i]);
+		item.index = ship.items.indexOf(cells[i]);
+		item.onclick = item_select;
+		cells[i].ui_elem = item;
 		weapons.appendChild(item);
 	}
 	tabs['Weapons'].content.appendChild(weapons)
@@ -328,7 +348,6 @@ rpg.load_combat = function(player, enemy, game_screen){
 	var enemy_ui = rpg.ship.make_ui(enemy, 'enemy');
 	// --- set shields to max value
 	//for now just show gaussian distribution
-	player.grid.defense = gaussian(0.7, 5, player.grid);
 	player.grid.refresh();
 	enemy.grid.defense = gaussian(0.5, 5, player.grid);
 	enemy.grid.refresh();
