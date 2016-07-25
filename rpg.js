@@ -111,19 +111,14 @@ rpg.ship = {};
 //makes a ui for player / enemy
 rpg.ship.make_ui = function(ship, cla){
 	//to hold everything
-	var wrapper = document.createElement('div');
-	wrapper.className = cla + " ship-ui";
+	var wrapper = elem('div', cla + " ship-ui");
 	//the actual ship
-	var ship_elem = document.createElement('div');
-	ship_elem.className = "ship";
+	var ship_elem = elem('div', "ship");
 	ship_elem.appendChild(ship.elem);
 	//the ui portion
-	var ui_elem = document.createElement('div');
-	ui_elem.className = "ui";
+	var ui_elem = elem('div', "ui");
 	//the ship name
-	var ship_name = document.createElement('p');
-	ship_name.className = "ship-name";
-	ship_name.innerHTML = ship.name;
+	var ship_name = elem('p', "ship-name", ship.name);
 	//the attack grid/matrix
 	ship.grid = rpg.ship.make_grid();
 	//health / energy bars
@@ -148,8 +143,7 @@ rpg.ship.make_ui = function(ship, cla){
 // --- make the attack / defend grids
 rpg.ship.make_grid = function(){
 	var grid = {};
-	var canvas = document.createElement('canvas');
-	canvas.className = "rpg-canvas";
+	var canvas = elem('canvas', "rpg-canvas");
 	canvas.width = global_vars.grid_canvas.w;
 	canvas.height = global_vars.grid_canvas.h;
 	grid.ctx = canvas.getContext('2d');
@@ -190,22 +184,18 @@ rpg.ship.make_grid = function(){
 rpg.ship.make_bar = function(max, cla, icon_class){
 	var bar = {max: max, val: max};
 	//wrapper
-	var elem = document.createElement('div');
-	elem.className = "stat-bar "+cla;
+	var el = elem('div', "stat-bar "+cla);
 	//variable bar
-	var inner = document.createElement('span');
-	inner.className = "stat-bar-inner";
+	var inner = elem('span', "stat-bar-inner");
 	//text value
-	var text = document.createElement('p');
-	text.className = 'stat-bar-text';
+	var text = elem('p', 'stat-bar-text');
 	//icon
-	var icon = document.createElement('i');
-	icon.className = "fa fa-"+icon_class;
+	var icon = elem('i', "fa fa-"+icon_class);
 	//add all to wrapper
-	elem.appendChild(inner);
-	elem.appendChild(text);
-	elem.appendChild(icon);
-	bar.elem = elem;
+	el.appendChild(inner);
+	el.appendChild(text);
+	el.appendChild(icon);
+	bar.elem = el;
 	bar.text_elem = text;
 	bar.inner_elem = inner;
 	//on refresh
@@ -220,35 +210,26 @@ rpg.ship.make_bar = function(max, cla, icon_class){
 // make control panel so user can edit their upcoming moves
 rpg.ship.make_control_panel = function(ship){
 	//TODO: add power bar to left of control panel to show energy left, about to be used by this turn
-	var wrapper = document.createElement('div');
-	wrapper.className = "control-panel";
+	var wrapper = elem('div', "control-panel");
 	//title
-	var title = document.createElement('p');
-	title.className = "title";
-	title.innerHTML = "Modules";
+	var title = elem('p', "title", "Modules");
 	//sections / navigation
-	var header = document.createElement('ul');
-	header.className = "tabs"
-	var header_back = document.createElement('li');
-	header_back.className = "tabs-background";
+	var header = elem('ul', "tabs");
+	var header_back = elem('li', "tabs-background");
 	header.appendChild(header_back);
 	//setup tabs
 	var tabs = {'Power': {color: 'blue'}, 'Defense': {color: 'purple'}, 'Weapons': {color: 'orange'}};
 	for (var t in tabs) {
 		if (tabs.hasOwnProperty(t)) {
-			var tab_title = document.createElement('p');
-			var selected = document.createElement('input');
-			var content_wrapper = document.createElement('div');
-			tabs[t].content = document.createElement('div');
+			var tab_title = elem('p', "tab-title "+tabs[t].color, t);
+			var selected = elem('input');
+			var content_wrapper = elem('div', "tab-content-wrapper");
+			tabs[t].content = elem('div', "tab-content");
 			//set class / types / tab name
-			tab_title.className = "tab-title "+tabs[t].color;
-			tab_title.innerHTML = t;
 			selected.type = "radio";
 			selected.name = "tab-select";
 			selected.value = t;
 			selected.checked = (t == 'Power');
-			content_wrapper.className = "tab-content-wrapper";
-			tabs[t].content.className = "tab-content";
 			//add everything to header
 			content_wrapper.appendChild(tabs[t].content);
 			header.appendChild(selected);
@@ -268,8 +249,7 @@ rpg.ship.make_control_panel = function(ship){
 		this.classList.add("selected");
 	};
 	// --- power tab content
-	var batteries = document.createElement('div');
-	batteries.className = "batteries";
+	var batteries = elem('div', "batteries");
 	var cells = ship.items_by_type('battery');
 	for (var i = 0; i < cells.length; i++) {
 		var item = rpg.item.make_ui(cells[i]);
@@ -280,8 +260,7 @@ rpg.ship.make_control_panel = function(ship){
 	}
 	tabs['Power'].content.appendChild(batteries)
 	// --- defense tab content
-	var shields = document.createElement('div');
-	shields.className = "defense";
+	var shields = elem('div', "defense");
 	var cells = ship.items_by_type('shield');
 	for (var i = 0; i < cells.length; i++) {
 		var item = rpg.item.make_ui(cells[i]);
@@ -292,8 +271,7 @@ rpg.ship.make_control_panel = function(ship){
 	}
 	tabs['Defense'].content.appendChild(shields)
 	// --- weapons tab content
-	var weapons = document.createElement('div');
-	weapons.className = "weapons";
+	var weapons = elem('div', "weapons");
 	var cells = ship.items_by_type('weapon');
 	for (var i = 0; i < cells.length; i++) {
 		var item = rpg.item.make_ui(cells[i]);
@@ -344,8 +322,7 @@ rpg.make_attack_bar = function(attack_cb){
 rpg.load_combat = function(player, enemy, game_screen){
 	//console.log(player.name + ' vs ' + enemy.name);
 	// --- create the UI elements
-	var combat_screen = document.createElement('div');
-	combat_screen.className = "rpg-combat-screen";
+	var combat_screen = elem('div', "rpg-combat-screen");
 	// --- make the uis
 	var player_ui = rpg.ship.make_ui(player, 'player');
 	var enemy_ui = rpg.ship.make_ui(enemy, 'enemy');
@@ -376,8 +353,7 @@ rpg.load_combat = function(player, enemy, game_screen){
 	var control_panel = rpg.ship.make_control_panel(player);
 	//TODO: add enable/disable animation for control panel to indicate turns
 	// --- finally, add everything to screen
-	var ships = document.createElement('div');
-	ships.className = "ships-wrapper";
+	var ships = elem('div', "ships-wrapper");
 	ships.appendChild(player_ui);
 	ships.appendChild(enemy_ui);
 	combat_screen.appendChild(ships);
@@ -396,10 +372,9 @@ rpg.gen_ship = function(name){
 	ship['name'] = name;
 	ship['hash'] = hash;
 	// --- generate graphics
-	var canvas = document.createElement('canvas');
+	var canvas = elem('canvas', 'rpg-canvas');
 	canvas.height = global_vars.ship_canvas.w;
 	canvas.width = global_vars.ship_canvas.h;
-	canvas.className = "rpg-canvas";
 	ctx = canvas.getContext('2d');
 	// --- pick colors scheme
 	//a set of hues/saturations is picked while the lightness is controlled
@@ -608,8 +583,7 @@ function gen_battery(hash, level){
 	//reliability is proportional to the inverse of throughput
 	var rel = 0;	//TODO: this
 	//draw up a battery (style 1)
-	var canvas = document.createElement('canvas');
-	canvas.className = "rpg-canvas";
+	var canvas = elem('canvas', "rpg-canvas");
 	canvas.width = global_vars.item_canvas.w;
 	canvas.height = global_vars.item_canvas.h;
 	item.elem = canvas;
@@ -662,8 +636,7 @@ function gen_shield(hash, level){
 	//reliability is proportional to the inverse of charge_rate and max shield
 	var rel = 0;	//TODO: this
 	//draw up a shield (radial style 1)
-	var canvas = document.createElement('canvas');
-	canvas.className = "rpg-canvas";
+	var canvas = elem('canvas', "rpg-canvas");
 	canvas.width = global_vars.item_canvas.w;
 	canvas.height = global_vars.item_canvas.h;
 	item.elem = canvas;
@@ -714,8 +687,7 @@ function gen_weapon(hash, level){
 	//reliability is proportional to the inverse of damage and proportional to accuracy
 	var rel = 0;	//TODO: this
 	//draw up a weapon (basic rect style)
-	var canvas = document.createElement('canvas');
-	canvas.className = "rpg-canvas";
+	var canvas = elem('canvas', "rpg-canvas");
 	canvas.width = global_vars.item_canvas.w;
 	canvas.height = global_vars.item_canvas.h;
 	item.elem = canvas;
@@ -766,44 +738,28 @@ rpg.item = {};
 
 //Make the ui (thumbnail portion) of an item
 rpg.item.make_ui = function(item){
-	var wrapper = document.createElement('div');
-	wrapper.className = "item-thumb "+item.type;
+	var wrapper = elem('div', "item-thumb "+item.type);
 	//name of item
-	var title = document.createElement('p');
-	title.className = "title";
-	title.innerHTML = item.name + ' ' + item.name_suffix;
+	var title = elem('p', "title", item.name + ' ' + item.name_suffix);
 	//show 1-2 lines of description, depending on item type
-	var desc = document.createElement('div');
-	desc.className = "description";
+	var desc = elem('div', "description");
 	switch (item.type) {
 		case 'battery':
-			var p1 = document.createElement('p');
-			p1.className = "fa-bolt";
-			p1.innerHTML = item.max_energy;
-			var p2 = document.createElement('p');
-			p2.className = "fa-tachometer";
-			p2.innerHTML = item.throughput;
+			var p1 = elem('p', "fa-bolt", item.max_energy);
+			var p2 = elem('p', "fa-tachometer", item.throughput);
 			break;
 		case 'shield':
-			var p1 = document.createElement('p');
-			p1.className = "fa-shield";
-			p1.innerHTML = item.max_shield;
-			var p2 = document.createElement('p');
-			p2.className = "fa-exchange";
-			p2.innerHTML = item.charge_rate;
+			var p1 = elem('p', "fa-shield", item.max_shield);
+			var p2 = elem('p', "fa-exchange", item.charge_rate);
 			break;
 		case 'weapon':
-			var p1 = document.createElement('p');
-			p1.className = "fa-certificate";
-			p1.innerHTML = item.damage;
-			var p2 = document.createElement('p');
-			p2.className = "fa-crosshairs";
-			p2.innerHTML = item.accuracy;
+			var p1 = elem('p', "fa-certificate", item.damage);
+			var p2 = elem('p', "fa-crosshairs", item.accuracy);
 			break;
 	}
 	//add everything
 	desc.appendChild(p1);
-	desc.appendChild(document.createElement('br'));
+	desc.appendChild(elem('br'));
 	desc.appendChild(p2);
 	wrapper.appendChild(item.elem);
 	wrapper.appendChild(title);
@@ -853,7 +809,7 @@ rpg.draw.ring = function(ctx, x, y, rad1, rad2, fill){
 	//ensure rad2 > rad1
 	if(rad1 > rad2){ rad2 = [rad1, rad1 = rad2][0]; }
 	//make a temp canvas
-	var tmp_canvas = document.createElement('canvas');
+	var tmp_canvas = elem('canvas');
 	tmp_canvas.width = 2*rad2;
 	tmp_canvas.height = 2*rad2;
 	var tmp_ctx = tmp_canvas.getContext('2d');
