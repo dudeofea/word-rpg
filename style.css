@@ -2479,13 +2479,33 @@ html, body, .rpg-screen, .rpg-combat-screen {
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
-  position: relative;
-  display: flex;
-  justify-content: center; }
+  position: relative; }
   .rpg-combat-screen .attack-bar * {
     display: inline-block;
     height: 30px;
     line-height: 30px; }
+  .rpg-combat-screen .attack-bar .attack-bar-content {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center; }
+  .rpg-combat-screen .attack-bar .back-left, .rpg-combat-screen .attack-bar .back-right {
+    position: absolute;
+    height: 100%;
+    width: 50%;
+    background-color: #FF9F1C;
+    top: 0;
+    left: 0; }
+  .rpg-combat-screen .attack-bar .back-right {
+    right: 0;
+    left: auto; }
+  .rpg-combat-screen .attack-bar.ready-left .back-left {
+    background-color: #139A43; }
+  .rpg-combat-screen .attack-bar.ready-right .back-right {
+    background-color: #139A43; }
   .rpg-combat-screen .attack-bar .left, .rpg-combat-screen .attack-bar .right {
     position: absolute;
     display: block;
@@ -2496,7 +2516,8 @@ html, body, .rpg-screen, .rpg-combat-screen {
     left: auto;
     right: 0; }
   .rpg-combat-screen .attack-bar .engage {
-    background-color: #9c5a00;
+    background-color: #000;
+    color: #F3F7F0;
     padding: 0 30px; }
   .rpg-combat-screen .attack-bar .chevron-right, .rpg-combat-screen .attack-bar .chevron-left {
     display: block;
@@ -2504,28 +2525,48 @@ html, body, .rpg-screen, .rpg-combat-screen {
     width: 0;
     border-style: solid;
     border-width: 15px 0 15px 30px; }
-  .rpg-combat-screen .attack-bar .chevron-left {
+  .rpg-combat-screen .attack-bar .chevron-right {
     border-width: 15px 30px 15px 0; }
-  .rpg-combat-screen .attack-bar .chevron-left-0 {
-    border-color: #ff9403 #ff9f1c #ff9403 transparent; }
   .rpg-combat-screen .attack-bar .chevron-right-0 {
-    border-color: #ff9403 transparent #ff9403 #ff9f1c; }
-  .rpg-combat-screen .attack-bar .chevron-left-1 {
-    border-color: #e88600 #ff9403 #e88600 transparent; }
+    border-color: black #332006 black transparent; }
+  .rpg-combat-screen .attack-bar.ready-right .chevron-right-0 {
+    border-color: black #041f0d black transparent; }
+  .rpg-combat-screen .attack-bar .chevron-left-0 {
+    border-color: black transparent black #332006; }
+  .rpg-combat-screen .attack-bar.ready-left .chevron-left-0 {
+    border-color: black transparent black #041f0d; }
   .rpg-combat-screen .attack-bar .chevron-right-1 {
-    border-color: #e88600 transparent #e88600 #ff9403; }
-  .rpg-combat-screen .attack-bar .chevron-left-2 {
-    border-color: #cf7700 #e88600 #cf7700 transparent; }
+    border-color: #332006 #66400b #332006 transparent; }
+  .rpg-combat-screen .attack-bar.ready-right .chevron-right-1 {
+    border-color: #041f0d #083e1b #041f0d transparent; }
+  .rpg-combat-screen .attack-bar .chevron-left-1 {
+    border-color: #332006 transparent #332006 #66400b; }
+  .rpg-combat-screen .attack-bar.ready-left .chevron-left-1 {
+    border-color: #041f0d transparent #041f0d #083e1b; }
   .rpg-combat-screen .attack-bar .chevron-right-2 {
-    border-color: #cf7700 transparent #cf7700 #e88600; }
-  .rpg-combat-screen .attack-bar .chevron-left-3 {
-    border-color: #b56800 #cf7700 #b56800 transparent; }
+    border-color: #66400b #995f11 #66400b transparent; }
+  .rpg-combat-screen .attack-bar.ready-right .chevron-right-2 {
+    border-color: #083e1b #0b5c28 #083e1b transparent; }
+  .rpg-combat-screen .attack-bar .chevron-left-2 {
+    border-color: #66400b transparent #66400b #995f11; }
+  .rpg-combat-screen .attack-bar.ready-left .chevron-left-2 {
+    border-color: #083e1b transparent #083e1b #0b5c28; }
   .rpg-combat-screen .attack-bar .chevron-right-3 {
-    border-color: #b56800 transparent #b56800 #cf7700; }
-  .rpg-combat-screen .attack-bar .chevron-left-4 {
-    border-color: #9c5a00 #b56800 #9c5a00 transparent; }
+    border-color: #995f11 #cc7f16 #995f11 transparent; }
+  .rpg-combat-screen .attack-bar.ready-right .chevron-right-3 {
+    border-color: #0b5c28 #0f7b36 #0b5c28 transparent; }
+  .rpg-combat-screen .attack-bar .chevron-left-3 {
+    border-color: #995f11 transparent #995f11 #cc7f16; }
+  .rpg-combat-screen .attack-bar.ready-left .chevron-left-3 {
+    border-color: #0b5c28 transparent #0b5c28 #0f7b36; }
   .rpg-combat-screen .attack-bar .chevron-right-4 {
-    border-color: #9c5a00 transparent #9c5a00 #b56800; }
+    border-color: #cc7f16 #ff9f1c #cc7f16 transparent; }
+  .rpg-combat-screen .attack-bar.ready-right .chevron-right-4 {
+    border-color: #0f7b36 #139a43 #0f7b36 transparent; }
+  .rpg-combat-screen .attack-bar .chevron-left-4 {
+    border-color: #cc7f16 transparent #cc7f16 #ff9f1c; }
+  .rpg-combat-screen .attack-bar.ready-left .chevron-left-4 {
+    border-color: #0f7b36 transparent #0f7b36 #139a43; }
 
 .item-thumb {
   position: relative;

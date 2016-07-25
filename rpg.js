@@ -313,18 +313,20 @@ rpg.ship.make_control_panel = function(ship){
 
 //draws up an attack bar to queue up attack sequences
 rpg.make_attack_bar = function(attack_cb){
-	var wrapper = document.createElement('div');
-	wrapper.className = "attack-bar";
+	var abar = elem('div', "attack-bar ready-left");
+	abar.appendChild(elem('span', 'back-left'));
+	abar.appendChild(elem('span', 'back-right'));
+	var wrapper = elem('div', 'attack-bar-content');
 	var ready1 = elem('p', "attack-button left", 'READY');
 	var ready2 = elem('p', "attack-button right waiting", 'WAITING');
 	//add chevrons
 	var elems = [];
 	for (var i = 0; i < 5; i++) {
-		elems.push(elem('span', 'chevron-right chevron-right-'+i));
+		elems.push(elem('span', 'chevron-left ready chevron-left-'+(5-i-1)));
 	}
 	elems.push(elem('p', 'engage', 'ENGAGE'));
 	for (var i = 0; i < 5; i++) {
-		elems.push(elem('span', 'chevron-left chevron-left-'+(5-i-1)));
+		elems.push(elem('span', 'chevron-right chevron-right-'+i));
 	}
 	//click to start engagement
 	ready1.onclick = attack_cb;
@@ -334,7 +336,8 @@ rpg.make_attack_bar = function(attack_cb){
 		wrapper.appendChild(elems[i]);
 	}
 	wrapper.appendChild(ready2);
-	return wrapper;
+	abar.appendChild(wrapper);
+	return abar;
 }
 
 //loads the combat screen between the player's ship and an enemy ship
