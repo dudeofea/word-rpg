@@ -2464,7 +2464,7 @@ html, body, .rpg-screen, .rpg-combat-screen {
 .rpg-combat-screen .attack-bar {
   margin: 0 30px 20px 30px;
   padding: 0 200px;
-  height: 30px;
+  height: 40px;
   background-color: #FF9F1C;
   border: 3px solid #0a1418;
   -webkit-border-top-left-radius: 5px;
@@ -2479,11 +2479,14 @@ html, body, .rpg-screen, .rpg-combat-screen {
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
-  position: relative; }
+  position: relative;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 20px; }
   .rpg-combat-screen .attack-bar * {
     display: inline-block;
-    height: 30px;
-    line-height: 30px; }
+    height: 40px;
+    line-height: 40px; }
   .rpg-combat-screen .attack-bar .attack-bar-content {
     position: absolute;
     width: 100%;
@@ -2506,10 +2509,12 @@ html, body, .rpg-screen, .rpg-combat-screen {
     background-color: #139A43; }
   .rpg-combat-screen .attack-bar.ready-right .back-right {
     background-color: #139A43; }
+  .rpg-combat-screen .attack-bar.ready-left.ready-right .engage {
+    color: #F3F7F0; }
   .rpg-combat-screen .attack-bar .left, .rpg-combat-screen .attack-bar .right {
     position: absolute;
     display: block;
-    width: 200px;
+    width: 130px;
     text-align: center;
     left: 0; }
   .rpg-combat-screen .attack-bar .right {
@@ -2517,16 +2522,16 @@ html, body, .rpg-screen, .rpg-combat-screen {
     right: 0; }
   .rpg-combat-screen .attack-bar .engage {
     background-color: #000;
-    color: #F3F7F0;
+    color: rgba(243, 247, 240, 0.3);
     padding: 0 30px; }
   .rpg-combat-screen .attack-bar .chevron-right, .rpg-combat-screen .attack-bar .chevron-left {
     display: block;
     height: 0;
     width: 0;
     border-style: solid;
-    border-width: 15px 0 15px 30px; }
+    border-width: 20px 0 20px 40px; }
   .rpg-combat-screen .attack-bar .chevron-right {
-    border-width: 15px 30px 15px 0; }
+    border-width: 20px 40px 20px 0; }
   .rpg-combat-screen .attack-bar .chevron-right-0 {
     border-color: black #332006 black transparent; }
   .rpg-combat-screen .attack-bar.ready-right .chevron-right-0 {
@@ -2592,7 +2597,9 @@ html, body, .rpg-screen, .rpg-combat-screen {
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
-  border-bottom-left-radius: 5px; }
+  border-bottom-left-radius: 5px;
+  cursor: hand;
+  cursor: pointer; }
   .item-thumb .fa-bolt {
     color: #0F7173; }
   .item-thumb .fa-tachometer {

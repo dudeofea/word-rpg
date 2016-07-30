@@ -259,7 +259,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			}
 		}
 	}
-	$attack-bar-height: 30px;
+	$attack-bar-height: 40px;
 	.attack-bar {
 		margin: 0 30px 20px 30px;
 		padding: 0 200px;
@@ -268,7 +268,9 @@ $ship-ui-border: 3px solid darken($dark, 10);
 		border: $ship-ui-border;
 		@include border-radius(5px, 5px, 5px, 5px);
 		position: relative;
-		//TODO: add about 5 chevrons each side, fill out bar width
+		font-family: monospace;
+		font-weight: bold;
+		font-size: 20px;
 		* {
 			display: inline-block;
 			height: $attack-bar-height;
@@ -301,10 +303,13 @@ $ship-ui-border: 3px solid darken($dark, 10);
 		&.ready-right .back-right {
 			background-color: $green;
 		}
+		&.ready-left.ready-right .engage{
+			color: $light;
+		}
 		.left, .right {
 			position: absolute;
 			display: block;
-			width: 200px;
+			width: 130px;
 			text-align: center;
 			left: 0;
 		}
@@ -314,7 +319,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 		}
 		.engage {
 			background-color: $black;
-			color: $light;
+			color: rgba($light, 0.3);
 			padding: 0 30px;
 		}
 		.chevron-right, .chevron-left {
@@ -363,6 +368,8 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	color: $light;
 	font-family: monospace;
 	@include border-radius(5px, 5px, 5px, 5px);
+	cursor: hand;
+	cursor: pointer;
 	//color code based on property type
 	.fa-bolt { color: $blue; }
 	.fa-tachometer { color: lighten($blue, 10); }

@@ -1,5 +1,7 @@
 var domready = require("domready");
 var convert = require('color-convert');
+var fields = require('./fields.js');
+var transforms = require('./transforms.js');
 
 //use the body as our main game window
 domready(function(){ init_rpg(); });
@@ -239,7 +241,7 @@ rpg.ship.make_control_panel = function(ship){
 	}
 	//on item select event
 	var item_select = function(){
-		console.log(this.classList);
+		console.log(this.index);
 		//unselect previous
 		var prev = document.getElementsByClassName('selected');
 		for (var i = 0; i < prev.length; i++) {
@@ -247,6 +249,20 @@ rpg.ship.make_control_panel = function(ship){
 		}
 		//select our element
 		this.classList.add("selected");
+		//convert weird js domtokenlist to array
+		var classes = [];
+		for (var i = 0; i < this.classList.length; i++) {
+			classes.push(this.classList[i]);
+		}
+		//for shields, we can control the center of emission
+		if(classes.indexOf("shield") >= 0){
+			//TODO: highlight the player's ship canvas
+			ship.grid.elem.onmousemove = function(e){
+				console.log(e);
+				//TODO: show shield distribution on separate
+				//grid centered at mouse
+			}
+		}
 	};
 	// --- power tab content
 	var batteries = elem('div', "batteries");
@@ -327,9 +343,17 @@ rpg.load_combat = function(player, enemy, game_screen){
 	var player_ui = rpg.ship.make_ui(player, 'player');
 	var enemy_ui = rpg.ship.make_ui(enemy, 'enemy');
 	// --- set shields to max value
-	//for now just show gaussian distribution
+	//make a basic field
+	var shield_grid = fields.composite(player.grid);
+	shield_grid.addField(fields.gaussian(12.5, 12.5, 1, 1.3));
+	shield_grid.addField(fields.gaussian(15, 15, 0.8, 0.5));
+	shield_grid.addField(fields.gaussian(10, 15, 0.8, 0.5));
+	shield_grid.addField(fields.gaussian(10, 10, 0.8, 0.5));
+	shield_grid.addField(fields.gaussian(15, 10, 0.8, 0.5));
+	player.grid.defense = shield_grid.render();
 	player.grid.refresh();
-	enemy.grid.defense = gaussian(0.5, 5, player.grid);
+	shield_grid.addTransform(transforms.scale(global_vars.grid_canvas.w/2, global_vars.grid_canvas.h/2, 3))
+	enemy.grid.defense = shield_grid.render();
 	enemy.grid.refresh();
 	//TODO: --- setup attack events
 	//TODO: add grid glitter animation to show that it exists
