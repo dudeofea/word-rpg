@@ -352,9 +352,17 @@ rpg.load_combat = function(player, enemy, game_screen){
 	shield_grid.addField(fields.gaussian(15, 10, 0.8, 0.5));
 	player.grid.defense = shield_grid.render();
 	player.grid.refresh();
-	shield_grid.addTransform(transforms.scale(global_vars.grid_canvas.w/2, global_vars.grid_canvas.h/2, 3))
-	enemy.grid.defense = shield_grid.render();
-	enemy.grid.refresh();
+	shield_grid.addTransform(transforms.scale(global_vars.grid_canvas.w/2, global_vars.grid_canvas.h/2, 12))
+	var frames = shield_grid.animateTransform(0, 10);
+	var frames_i = 0;
+	var set_grid = function(){
+		enemy.grid.defense = frames[frames_i++];
+		enemy.grid.refresh();
+		if(frames_i < frames.length -1){
+			setTimeout(set_grid, 50);
+		}
+	}
+	set_grid();
 	//TODO: --- setup attack events
 	//TODO: add grid glitter animation to show that it exists
 	//add an attack bar for sequencing turns
