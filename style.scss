@@ -270,13 +270,24 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			border-left: 2px solid $black;
 			.detail-title {
 				padding: 0 15px;
-				margin-bottom: -3px;
 				height: $control-panel-height;
 				line-height: $control-panel-height;
 				font-family: monospace;
 				pointer-events: none;
 				text-transform: capitalize;
 				font-size: 14px;
+			}
+			.detail-content {
+				.canvas-wrapper {
+					background-color: rgba(243, 247, 240, 0.1);
+					height: 140px;
+					width: 100%;
+					canvas {
+						height: 100%;
+						margin: 0 auto;
+						display: block;
+					}
+				}
 			}
 		}
 		//colors
@@ -420,17 +431,22 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	@include border-radius(5px, 5px, 5px, 5px);
 	cursor: hand;
 	cursor: pointer;
-	//color code based on property type
-	.fa-bolt { color: $blue; }
-	.fa-tachometer { color: lighten($blue, 10); }
-	.fa-shield { color: $green; }
-	.fa-exchange { color: lighten($green, 10); }
-	.fa-certificate { color: $orange; }
-	.fa-crosshairs { color: lighten($orange, 15); }
 	//color by item type
-	&.battery .title { color: lighten($blue, 55); }
-	&.shield .title { color: lighten($green, 30); }
-	&.weapon .title { color: lighten($orange, 30); }
+	&.battery {
+		.title { color: lighten($blue, 55); }
+		.description p { color: $blue; }
+		.description p.fa-exchange { color: lighten($blue, 10); }
+	}
+	&.shield {
+		.title { color: lighten($green, 30); }
+		.description p { color: $green; }
+		.description p.fa-exchange { color: lighten($green, 10); }
+	}
+	&.weapon {
+		.title { color: lighten($orange, 30); }
+		.description p { color: $orange; }
+		.description p.fa-exchange { color: lighten($orange, 15); }
+	}
 	//text fields
 	.title {
 		font-size: 16px;

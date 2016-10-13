@@ -22,5 +22,16 @@ module.exports = function(tag, cla, content){
 	e.removeClass = function(name){
 		//TODO: use regex to replace all instances of name in class
 	}
+	//clone node override to copy canvas contents
+	e.regularCloneNode = e.cloneNode;
+	e.cloneNode = function(deep){
+		var cloned = this.regularCloneNode(deep);
+		if(this.tagName == "CANVAS"){
+			//copy old contents onto new canvas
+			var ctx = cloned.getContext('2d');
+			ctx.drawImage(this, 0, 0);
+		}
+		return cloned;
+	}
 	return e;
 };

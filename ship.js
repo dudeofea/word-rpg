@@ -128,6 +128,7 @@ module.exports = {
 	// make control panel so user can edit their upcoming moves
 	make_control_panel: function(ship){
 		//TODO: add power bar on top of control panel to show energy left, about to be used by this turn
+		//TODO: on said power bar, add separate elements to show individual contributions of ship items to power consumption
 		var wrapper = elem('div', "control-panel");
 		//title
 		var title = elem('p', "title", "Modules");
@@ -151,6 +152,12 @@ module.exports = {
 			for (var i = 0; i < this.classList.length; i++) {
 				classes.push(this.classList[i]);
 			}
+			//TODO: show detail view of item
+			item_detail_header.innerHTML = item.name + " " + item.name_suffix;
+			item_detail_content.innerHTML = "";
+			var item_canvas_wrapper = elem('div', 'canvas-wrapper');
+			item_canvas_wrapper.appendChild(item.elem.cloneNode(true));
+			item_detail_content.appendChild(item_canvas_wrapper);
 			//for shields, we can control the center of emission
 			if(classes.indexOf("shield") >= 0){
 				//TODO: highlight the player's ship canvas
@@ -165,8 +172,6 @@ module.exports = {
 			}else if(classes.indexOf("weapon") >= 0){
 				item_detail.className = "detail orange";
 			}
-			//TODO: show detail view of item
-			item_detail_header.innerHTML = item.name + " " + item.name_suffix;
 		};
 		//on item deselect
 		var item_deselect = function(e){
@@ -206,7 +211,9 @@ module.exports = {
 		//TODO: setup detail view
 		var item_detail = elem("div", "detail hide");
 		var item_detail_header = elem("p", "detail-title");
+		var item_detail_content = elem("div", "detail-content");
 		item_detail.appendChild(item_detail_header);
+		item_detail.appendChild(item_detail_content);
 		// --- power tab content
 		var batteries = elem('div', "batteries");
 		var cells = ship.items_by_type('battery');
@@ -395,6 +402,7 @@ module.exports = {
 		//      - HP: max health points, represents the ship integrity
 		//      - ENRG: max energy levels, energy is used to perform actions. if you run out you essentially die
 		//      - THRP: throughput, how much energy the ship can source in a turn
+		//				calculated from the sum of all battery energ production values (the opposite of consumption)
 		//
 		//      - level up boosts are how much stats grow per level.
 		//        ex: HP_BST, etc
@@ -412,12 +420,12 @@ module.exports = {
 		weapon.name = "Starter";
 
 		//normalize across max energy, throughput, and max health
-		var norm = {max_energy: battery.max_energy_val, throughput: battery.throughput_val, hp_max: ship.hp_max_val};
-		normalize_stats(norm, ['max_energy', 'throughput', 'hp_max']);
+		var norm = {max_energy: battery.max_energy_val, consumption: battery.consumption_val, hp_max: ship.hp_max_val};
+		normalize_stats(norm, ['max_energy', 'consumption', 'hp_max']);
 		battery.max_energy_val = norm.max_energy;
-		battery.throughput_val = norm.throughput;
+		battery.consumption_val = norm.consumption;
 		battery.max_energy = parseInt(battery.max_energy_mul * battery.max_energy_val);
-		battery.throughput = parseInt(battery.throughput_mul * battery.throughput_val);
+		battery.consumption = parseInt(battery.consumption_mul * battery.consumption_val);
 		ship.hp_max_val = norm.hp_max;
 		ship.hp_max = parseInt(ship.hp_max_mul * ship.hp_max_val);
 		ship.hp = ship.hp_max;

@@ -30,6 +30,7 @@ module.exports = {
 		var item = generators[i](hash, level);
 		item.name = name;
 		//TODO: add a health stat to items
+		//TODO: add capacitor item for charging bursts
 		return item;
 	},
 	//generate a weapon with a given hash
@@ -42,8 +43,12 @@ module.exports = {
 		item.accuracy_mul = 100 * level;
 		item.accuracy_val = hash.normalize(4, 4);
 		item.accuracy = parseInt(item.accuracy_val * item.accuracy_mul);
+		//add energy consumption
+		item.consumption_mul = 50 * level;
+		item.consumption_val = (0.5 + hash.normalize(40, 4)) * (item.damage_val * 0.8 + item.accuracy_val * 0.2);
+		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
 		//reliability is proportional to the inverse of damage and proportional to accuracy
-		var rel = 0;	//TODO: this
+		var rel = 0;	//TODO: add reliability stat
 		//draw up a weapon (basic rect style)
 		var canvas = elem('canvas', "rpg-canvas");
 		canvas.width = global_vars.item_canvas.w;
@@ -60,7 +65,6 @@ module.exports = {
 			colors.push('#' + convert.lab.hex(50-8*i, a, b));
 		}
 		//TODO: correlate barrel width with accuracy
-		//TODO: add a reload stat (how much energy is needed before next shot is fired)
 		//define size
 		var w = parseInt(25 + 20*hash.normalize(45, 6));
 		var h = parseInt(15 + 10*hash.normalize(22, 6));
@@ -102,8 +106,13 @@ module.exports = {
 		item.charge_rate_mul = 500 * level;
 		item.charge_rate_val = hash.normalize(4, 4);
 		item.charge_rate = parseInt(item.charge_rate_val * item.charge_rate_mul);
+		//add energy consumption
+		item.consumption_mul = 100 * level;
+		item.consumption_val = (0.5 + hash.normalize(20, 4)) * (item.max_shield_val * 0.2 + item.charge_rate_val * 0.8);
+		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
+		//TODO: add shield radius stat
 		//reliability is proportional to the inverse of charge_rate and max shield
-		var rel = 0;	//TODO: this
+		var rel = 0;	//TODO: add reliability stat
 		//draw up a shield (radial style 1)
 		var canvas = elem('canvas', "rpg-canvas");
 		canvas.width = global_vars.item_canvas.w;
@@ -149,11 +158,11 @@ module.exports = {
 		item.max_energy_mul = 100 * level;
 		item.max_energy_val = hash.normalize(0, 4);
 		item.max_energy = parseInt(item.max_energy_val * item.max_energy_mul);
-		item.throughput_mul = 50 * level;
-		item.throughput_val = hash.normalize(4, 4);
-		item.throughput = parseInt(item.throughput_val * item.throughput_mul);
-		//reliability is proportional to the inverse of throughput
-		var rel = 0;	//TODO: this
+		item.consumption_mul = 50 * level;
+		item.consumption_val = hash.normalize(4, 4);
+		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
+		//reliability is proportional to the inverse of energy consumption
+		var rel = 0;	//TODO: add reliability stat
 		//draw up a battery (style 1)
 		var canvas = elem('canvas', "rpg-canvas");
 		canvas.width = global_vars.item_canvas.w;
@@ -205,15 +214,15 @@ module.exports = {
 		switch (item.type) {
 			case 'battery':
 				var p1 = elem('p', "fa-bolt", item.max_energy);
-				var p2 = elem('p', "fa-tachometer", item.throughput);
+				var p2 = elem('p', "fa-exchange", item.consumption);
 				break;
 			case 'shield':
 				var p1 = elem('p', "fa-shield", item.max_shield);
-				var p2 = elem('p', "fa-exchange", item.charge_rate);
+				var p2 = elem('p', "fa-exchange", item.consumption);
 				break;
 			case 'weapon':
 				var p1 = elem('p', "fa-certificate", item.damage);
-				var p2 = elem('p', "fa-crosshairs", item.accuracy);
+				var p2 = elem('p', "fa-exchange", item.consumption);
 				break;
 		}
 		//TODO: add health bar to item ui
