@@ -55,6 +55,10 @@ html, body, .rpg-screen, .rpg-combat-screen {
 	-ms-interpolation-mode: nearest-neighbor;   /* IE                            */
 }
 
+.hide {
+	display: none;
+}
+
 $ship-title-height: 30px;
 $ship-ui-border: 3px solid darken($dark, 10);
 
@@ -188,8 +192,11 @@ $ship-ui-border: 3px solid darken($dark, 10);
 		@include border-radius(8px, 8px, 8px, 8px);
 		border: $ship-ui-border;
 		box-sizing: border-box;
-		.title { border: 0; }
-		.tabs {
+		.title {
+			border: 0;
+			z-index: 1;
+		}
+		.tabs, .detail {
 			position: absolute;
 			padding-top: $ship-title-height;
 			width: 100%;
@@ -217,7 +224,6 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			.tab-title {
 				float: left;
 				padding: 0 15px;
-				//background-color: $control-panel-light1;
 				border-bottom: 3px solid $control-panel-light2;
 				margin-bottom: -3px;
 				width: 80px;
@@ -230,7 +236,6 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			}
 			//selected tab
 			input[type=radio]:checked + .tab-title {
-				//background-color: $control-panel-light2;
 				border-color: $dark;
 			}
 			input[type=radio]:checked + .tab-title + .tab-content-wrapper .tab-content {
@@ -239,6 +244,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			}
 			//highlight colors
 			input[type=radio]:checked + .tab-title.purple { color: darken($purple, 10); }
+			input[type=radio]:checked + .tab-title.green { color: darken($green, 10); }
 			input[type=radio]:checked + .tab-title.blue { color: darken($blue, 6); }
 			input[type=radio]:checked + .tab-title.orange { color: darken($orange, 5); }
 			//tab content
@@ -256,6 +262,50 @@ $ship-ui-border: 3px solid darken($dark, 10);
 				height: 100%;
 				bottom: 0;
 				opacity: 0;
+			}
+		}
+		.detail {
+			width: 300px;
+			right: 0;
+			border-left: 2px solid $black;
+			.detail-title {
+				padding: 0 15px;
+				margin-bottom: -3px;
+				height: $control-panel-height;
+				line-height: $control-panel-height;
+				font-family: monospace;
+				pointer-events: none;
+				text-transform: capitalize;
+				font-size: 14px;
+			}
+		}
+		//colors
+		.detail.purple {
+			background-color: mix($purple, $black, 10%);
+			.detail-title {
+				background-color: mix($purple, $dark, 70%);
+				border-bottom: 3px solid mix($purple, $dark, 50%);
+			}
+		}
+		.detail.orange {
+			background-color: mix($orange, $black, 10%);
+			.detail-title {
+				background-color: mix($orange, $dark, 70%);
+				border-bottom: 3px solid mix($orange, $dark, 50%);
+			}
+		}
+		.detail.blue {
+			background-color: mix($blue, $black, 10%);
+			.detail-title {
+				background-color: mix($blue, $dark, 70%);
+				border-bottom: 3px solid mix($blue, $dark, 50%);
+			}
+		}
+		.detail.green {
+			background-color: mix($green, $black, 10%);
+			.detail-title {
+				background-color: mix($green, $dark, 70%);
+				border-bottom: 3px solid mix($green, $dark, 50%);
 			}
 		}
 	}
@@ -373,13 +423,13 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	//color code based on property type
 	.fa-bolt { color: $blue; }
 	.fa-tachometer { color: lighten($blue, 10); }
-	.fa-shield { color: $purple; }
-	.fa-exchange { color: lighten($purple, 10); }
+	.fa-shield { color: $green; }
+	.fa-exchange { color: lighten($green, 10); }
 	.fa-certificate { color: $orange; }
 	.fa-crosshairs { color: lighten($orange, 15); }
 	//color by item type
 	&.battery .title { color: lighten($blue, 55); }
-	&.shield .title { color: lighten($purple, 30); }
+	&.shield .title { color: lighten($green, 30); }
 	&.weapon .title { color: lighten($orange, 30); }
 	//text fields
 	.title {

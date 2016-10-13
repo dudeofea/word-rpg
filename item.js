@@ -29,6 +29,7 @@ module.exports = {
 		//console.log(i);
 		var item = generators[i](hash, level);
 		item.name = name;
+		//TODO: add a health stat to items
 		return item;
 	},
 	//generate a weapon with a given hash
@@ -59,6 +60,7 @@ module.exports = {
 			colors.push('#' + convert.lab.hex(50-8*i, a, b));
 		}
 		//TODO: correlate barrel width with accuracy
+		//TODO: add a reload stat (how much energy is needed before next shot is fired)
 		//define size
 		var w = parseInt(25 + 20*hash.normalize(45, 6));
 		var h = parseInt(15 + 10*hash.normalize(22, 6));
@@ -189,6 +191,7 @@ module.exports = {
 			rpg.draw.rounded_rect(ctx, (canvas.width - part_w)/2, i*(part_h+5)+10, part_w, part_h, radius, color1);
 		}
 		//consumes no energy
+		//TODO: add energy to energy pool when battery is run
 		item.run = function(){ return 0; }
 		return item;
 	},
@@ -213,6 +216,7 @@ module.exports = {
 				var p2 = elem('p', "fa-crosshairs", item.accuracy);
 				break;
 		}
+		//TODO: add health bar to item ui
 		//add everything
 		desc.appendChild(p1);
 		desc.appendChild(elem('br'));

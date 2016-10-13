@@ -11,8 +11,8 @@
 		var main_screen = document.createElement('div');
 		main_screen.className = "rpg-screen";
 		document.body.appendChild(main_screen);
-		var s1 = rpg.gen_ship('Zoikostra');
-		var s2 = rpg.gen_ship('Garanthuur');
+		var s1 = rpg.ship.gen_ship('Zoikostra');
+		var s2 = rpg.ship.gen_ship('Garanthuur');
 		rpg.load_combat(s1, s2, main_screen);
 	}
 	</script>
