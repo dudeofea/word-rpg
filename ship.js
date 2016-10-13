@@ -166,10 +166,28 @@ module.exports = {
 					//TODO: show shield distribution on separate
 					//grid centered at mouse
 				}
+				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
+				item_detail_content.appendChild(elem('span', 'value', item.consumption));
+				item_detail_content.appendChild(elem('p', 'fa-shield', 'Maximum Shielding'));
+				item_detail_content.appendChild(elem('span', 'value', item.max_shield));
+				item_detail_content.appendChild(elem('p', 'fa-repeat', 'Shield Regeneration'));
+				item_detail_content.appendChild(elem('span', 'value', item.charge_rate));
 				item_detail.className = "detail green";
+			//item is battery
 			}else if(classes.indexOf("battery") >= 0){
+				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy Production'));
+				item_detail_content.appendChild(elem('span', 'value', -item.consumption));
+				item_detail_content.appendChild(elem('p', 'fa-bolt', 'Energy Capacity'));
+				item_detail_content.appendChild(elem('span', 'value', item.max_energy));
 				item_detail.className = "detail blue";
+			//for weapons we can control where we aim it
 			}else if(classes.indexOf("weapon") >= 0){
+				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
+				item_detail_content.appendChild(elem('span', 'value', item.consumption));
+				item_detail_content.appendChild(elem('p', 'fa-certificate', 'Damage'));
+				item_detail_content.appendChild(elem('span', 'value', item.damage));
+				item_detail_content.appendChild(elem('p', 'fa-crosshairs', 'Accuracy'));
+				item_detail_content.appendChild(elem('span', 'value', item.accuracy));
 				item_detail.className = "detail orange";
 			}
 		};
@@ -420,12 +438,10 @@ module.exports = {
 		weapon.name = "Starter";
 
 		//normalize across max energy, throughput, and max health
-		var norm = {max_energy: battery.max_energy_val, consumption: battery.consumption_val, hp_max: ship.hp_max_val};
-		normalize_stats(norm, ['max_energy', 'consumption', 'hp_max']);
+		var norm = {max_energy: battery.max_energy_val, hp_max: ship.hp_max_val};
+		normalize_stats(norm, ['max_energy', 'hp_max']);
 		battery.max_energy_val = norm.max_energy;
-		battery.consumption_val = norm.consumption;
 		battery.max_energy = parseInt(battery.max_energy_mul * battery.max_energy_val);
-		battery.consumption = parseInt(battery.consumption_mul * battery.consumption_val);
 		ship.hp_max_val = norm.hp_max;
 		ship.hp_max = parseInt(ship.hp_max_mul * ship.hp_max_val);
 		ship.hp = ship.hp_max;

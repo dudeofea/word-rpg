@@ -288,6 +288,28 @@ $ship-ui-border: 3px solid darken($dark, 10);
 						display: block;
 					}
 				}
+				p, .value {
+					padding: 10px;
+					font-family: monospace;
+					float: left;
+					min-width: 55%;
+				}
+				p:before {
+					display: inline-block;
+					padding-right: 10px;
+					width: 20px;
+					font-family: FontAwesome;
+				}
+				.value {
+					min-width: 0;
+					float: right;
+					font-weight: bold;
+				}
+				.value:after {
+					display: block;
+					content: " ";
+					clear: both;
+				}
 			}
 		}
 		//colors
@@ -297,6 +319,9 @@ $ship-ui-border: 3px solid darken($dark, 10);
 				background-color: mix($purple, $dark, 70%);
 				border-bottom: 3px solid mix($purple, $dark, 50%);
 			}
+			.detail-content p, .detail-content .value {
+				color: mix($purple, $dark, 70%);
+			}
 		}
 		.detail.orange {
 			background-color: mix($orange, $black, 10%);
@@ -304,12 +329,18 @@ $ship-ui-border: 3px solid darken($dark, 10);
 				background-color: mix($orange, $dark, 70%);
 				border-bottom: 3px solid mix($orange, $dark, 50%);
 			}
+			.detail-content p, .detail-content .value {
+				color: mix($orange, $dark, 70%);
+			}
 		}
 		.detail.blue {
 			background-color: mix($blue, $black, 10%);
 			.detail-title {
-				background-color: mix($blue, $dark, 70%);
+				background-color: mix($blue, $dark, 90%);
 				border-bottom: 3px solid mix($blue, $dark, 50%);
+			}
+			.detail-content p, .detail-content .value {
+				color: mix($blue, $dark, 90%);
 			}
 		}
 		.detail.green {
@@ -317,6 +348,9 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			.detail-title {
 				background-color: mix($green, $dark, 70%);
 				border-bottom: 3px solid mix($green, $dark, 50%);
+			}
+			.detail-content p, .detail-content .value {
+				color: mix($green, $dark, 70%);
 			}
 		}
 	}

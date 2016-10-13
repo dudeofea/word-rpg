@@ -160,7 +160,7 @@ module.exports = {
 		item.max_energy = parseInt(item.max_energy_val * item.max_energy_mul);
 		item.consumption_mul = 50 * level;
 		item.consumption_val = hash.normalize(4, 4);
-		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
+		item.consumption = -parseInt(item.consumption_val * item.consumption_mul);
 		//reliability is proportional to the inverse of energy consumption
 		var rel = 0;	//TODO: add reliability stat
 		//draw up a battery (style 1)
@@ -214,7 +214,7 @@ module.exports = {
 		switch (item.type) {
 			case 'battery':
 				var p1 = elem('p', "fa-bolt", item.max_energy);
-				var p2 = elem('p', "fa-exchange", item.consumption);
+				var p2 = elem('p', "fa-exchange", -item.consumption);
 				break;
 			case 'shield':
 				var p1 = elem('p', "fa-shield", item.max_shield);
