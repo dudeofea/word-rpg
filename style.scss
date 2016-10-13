@@ -396,6 +396,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			text-align: right;
 			padding-right: 20px;
 			&:before {
+				font-family: FontAwesome;
 				display: block;
 				position: absolute;
 				right: 0;

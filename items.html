@@ -13,7 +13,7 @@
 		document.body.appendChild(main_screen);
 		var names = ['Vulcan', 'Hyolnir', 'Kathum', 'Flairithur', 'Dolom', 'Jaka', 'Uulum', 'Ilik', 'Erest', 'Uordon', 'Llum', 'Plumi', 'Klarthum', 'Tutil', 'Leviathan', 'Wagstorn', 'Flufl', 'Illia', 'Quixnor', 'Yukip', 'Opnep', 'Egar', 'Klulkin', 'IOP', 'Dfarger', 'Floogle'];
 		for (var i = 0; i < names.length; i++) {
-			var item = rpg.gen_item(names[i], 1);
+			var item = rpg.item.gen_item(names[i], 1);
 			main_screen.appendChild(rpg.item.make_ui(item));
 		}
 	}

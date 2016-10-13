@@ -21,16 +21,18 @@ module.exports = {
 		//the ship name
 		var ship_name = elem('p', "ship-name", ship.name);
 		//the attack grid/matrix
-		ship.grid = rpg.ship.make_grid();
-		//health / energy bars
-		ship.health_bar = rpg.ship.make_bar(ship.hp_max, 'health', 'heart');
+		ship.grid = this.make_grid();
+		//health / shield / energy bars
+		ship.health_bar = this.make_bar(ship.hp_max, 'health', 'heart');
+		//TODO: add bar showing overall shield level
+		//ship.shield_bar = this.make_bar(ship.)
 		//calc max energy
 		ship.max_energy = 0;
 		var cells = ship.items_by_type('battery');
 		for (var i = 0; i < cells.length; i++) {
 			ship.max_energy += cells[i].max_energy;
 		}
-		ship.energy_bar = rpg.ship.make_bar(ship.max_energy, 'energy', 'bolt');
+		ship.energy_bar = this.make_bar(ship.max_energy, 'energy', 'bolt');
 		//adding everything
 		ui_elem.appendChild(ship_name);
 		ui_elem.appendChild(ship.grid.elem);

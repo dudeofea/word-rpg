@@ -5,7 +5,9 @@
 //
 module.exports = function(tag, cla, content){
 	var e = document.createElement(tag);
-	e.className = cla;
+	if(cla){
+		e.className = cla;
+	}
 	if(typeof content != "undefined"){
 		e.innerHTML = content;
 	}
