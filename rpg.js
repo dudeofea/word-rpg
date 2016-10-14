@@ -134,7 +134,7 @@ rpg.load_combat = function(player, enemy, game_screen){
 		enemy.grid.defense = frames[frames_i++];
 		enemy.grid.refresh();
 		if(frames_i < frames.length -1){
-			setTimeout(set_grid, 40);
+			setTimeout(set_grid, 100);
 		}
 	}
 	set_grid();

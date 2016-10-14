@@ -8,6 +8,7 @@
 var elem = require('./elem.js');
 var global_vars = require('./globals.js');
 var convert = require('color-convert');
+var transforms = require('./transforms.js');
 
 //normalize a set of stats in object
 function normalize_stats(obj, stats){
@@ -136,6 +137,11 @@ module.exports = {
 		var header = elem('ul', "tabs");
 		var header_back = elem('li', "tabs-background");
 		header.appendChild(header_back);
+		//clear temp events setup when selecting
+		var clear_events = function(){
+			ship.grid.elem.onmousemove = null;
+			//TODO: remove hover_canvas element
+		}
 		//on item select event
 		var item_select = function(){
 			var item = ship.items[this.index];
@@ -152,20 +158,57 @@ module.exports = {
 			for (var i = 0; i < this.classList.length; i++) {
 				classes.push(this.classList[i]);
 			}
-			//TODO: show detail view of item
+			//show detail view of item
 			item_detail_header.innerHTML = item.name + " " + item.name_suffix;
 			item_detail_content.innerHTML = "";
 			var item_canvas_wrapper = elem('div', 'canvas-wrapper');
 			item_canvas_wrapper.appendChild(item.elem.cloneNode(true));
 			item_detail_content.appendChild(item_canvas_wrapper);
 			//for shields, we can control the center of emission
+			clear_events();
 			if(classes.indexOf("shield") >= 0){
-				//TODO: highlight the player's ship canvas
-				ship.grid.elem.onmousemove = function(e){
-					console.log(e);
-					//TODO: show shield distribution on separate
-					//grid centered at mouse
+				//use shield field, and setup translation based on mouse position
+				var hover_canvas = elem('canvas', 'overlay rpg-canvas');
+				var ctx = hover_canvas.getContext('2d');
+				hover_canvas.width = global_vars.grid_canvas.w;
+				hover_canvas.height= global_vars.grid_canvas.h;
+				ship.grid.elem.parentNode.appendChild(hover_canvas);
+				var f = item.field.clone();
+				//colorize
+				var framebuffer = ctx.createImageData(hover_canvas.width, hover_canvas.height);
+				var data = framebuffer.data;
+				//TODO: get value from global green color
+				for (var i = 0; i < data.length; i += 4) {
+					data[i]	  = 100;
+					data[i+1] = 255;
+					data[i+2] = 100;
+					data[i+3] = 0;
 				}
+				//add a translate transform
+				f.addTransform(transforms.translate(3, 3));
+				var last_transform = f.transforms[f.transforms.length-1];
+				var hover_canvas_refresh = function(){
+					var data = framebuffer.data;
+					var field_data = f.render();
+					for (var i = 0; i < field_data.length; i++) {
+						data[i*4+3] = field_data[i];
+					}
+					ctx.putImageData(framebuffer, 0, 0);
+				}
+				hover_canvas_refresh();
+				//move around center based on mouse
+				hover_canvas.onmousemove = function(e){
+					//console.log(e, last_transform);
+					//get x/y on canvas
+					var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
+					var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
+					last_transform.tx = grid_x;
+					last_transform.ty = grid_y;
+					//refresh the canvas
+					hover_canvas_refresh();
+				}
+				//TODO: only move around the field when clicked
+				//setup detail panel
 				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
 				item_detail_content.appendChild(elem('span', 'value', item.consumption));
 				item_detail_content.appendChild(elem('p', 'fa-shield', 'Maximum Shielding'));
@@ -204,6 +247,8 @@ module.exports = {
 			}
 			//hide details
 			item_detail.addClass("hide");
+			//remove mouse events
+			clear_events();
 		};
 		//setup tabs
 		var tabs = {'Power': {color: 'blue'}, 'Defense': {color: 'green'}, 'Weapons': {color: 'orange'}};

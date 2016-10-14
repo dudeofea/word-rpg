@@ -7,6 +7,7 @@
 var elem = require('./elem.js');
 var global_vars = require('./globals.js');
 var convert = require('color-convert');
+var fields = require('./fields.js');
 
 //linearly interpolate between two values with a 0-1 normalized value
 function lerp(start, end, value){
@@ -111,6 +112,14 @@ module.exports = {
 		item.consumption_val = (0.5 + hash.normalize(20, 4)) * (item.max_shield_val * 0.2 + item.charge_rate_val * 0.8);
 		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
 		//TODO: add shield radius stat
+		//TODO: randomize shield field
+		item.field = fields.composite({
+			elem: {
+				width: global_vars.grid_canvas.w,
+				height: global_vars.grid_canvas.h
+			}
+		});
+		item.field.addField(fields.gaussian(5, 5, 1, 1.3));
 		//reliability is proportional to the inverse of charge_rate and max shield
 		var rel = 0;	//TODO: add reliability stat
 		//draw up a shield (radial style 1)

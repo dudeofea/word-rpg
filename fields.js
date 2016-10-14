@@ -64,6 +64,7 @@ module.exports = {
 			//return all frames
 			return frames;
 		}
+		//return an array to draw on a canvas
 		comp.render = function(){
 			var arr = Array.apply(null, Array(this.width*this.height)).map(Number.prototype.valueOf, 0);
 			var arr_xy = Array.apply(null, Array(this.width*this.height)).map(Number.prototype.valueOf, 0);
@@ -74,6 +75,7 @@ module.exports = {
 					arr_xy[off + x] = [x, y];
 				}
 			}
+			//TODO: fix this so we can use transforms that also modify the output value and not just the x/y points
 			//apply transforms to xy points
 			for (var i = 0; i < this.transforms.length; i++) {
 				for (var j = 0; j < arr_xy.length; j++) {
@@ -87,6 +89,26 @@ module.exports = {
 				}
 			}
 			return arr;
+		}
+		//make a separate copy
+		comp.clone = function(){
+			var new_comp = JSON.parse(JSON.stringify(comp));
+			//copy fucntions
+			new_comp.addField = comp.addField;
+			new_comp.addTransform = comp.addTransform;
+			new_comp.animateTransform = comp.animateTransform;
+			new_comp.render = comp.render;
+			//copy fields
+			new_comp.fields = [];
+			for (var i = 0; i < comp.fields.length; i++) {
+				new_comp.fields.push(comp.fields[i]);
+			}
+			//copy transforms
+			new_comp.transforms = [];
+			for (var i = 0; i < comp.transforms.length; i++) {
+				new_comp.transforms.push(comp.transforms[i]);
+			}
+			return new_comp;
 		}
 		return comp;
 	},
