@@ -29,6 +29,15 @@ html,body,div,span,applet,object,iframe,a,abbr,acronym,address,big,cite,code,del
 @mixin translate($x, $y) {
 	@include transform(translate($x, $y));
 }
+@mixin noselect(){
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  user-select: none;           /* Non-prefixed version, currently
+                                  not supported by any browser */
+}
 
 //color palette
 $black: #000;
@@ -43,6 +52,7 @@ $green: #139A43;
 //fullscreen
 html, body, .rpg-screen, .rpg-combat-screen {
 	background-color: $dark;
+	@include noselect();
 }
 
 //disable interpolation on canvases

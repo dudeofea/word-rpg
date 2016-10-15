@@ -35,3 +35,18 @@ module.exports = function(tag, cla, content){
 	}
 	return e;
 };
+//
+//	extra functions
+//
+
+//check if an element is within an element with a certain class
+module.exports.withinClass = function(el, cla){
+	//check if cla in className
+	if(el.className && el.className.indexOf(cla) >= 0){
+		return true;
+	}
+	if(!el.parentNode){
+		return false;
+	}
+	return this.withinClass(el.parentNode, cla);
+}

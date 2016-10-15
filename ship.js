@@ -138,9 +138,18 @@ module.exports = {
 		var header_back = elem('li', "tabs-background");
 		header.appendChild(header_back);
 		//clear temp events setup when selecting
+		var hover_canvas = null;
+		var hover_field  = null;
+		var hover_framebuffer = null;
 		var clear_events = function(){
 			ship.grid.elem.onmousemove = null;
-			//TODO: remove hover_canvas element
+			//remove hover_canvas element
+			if(hover_canvas != null){
+				hover_canvas.parentNode.removeChild(hover_canvas);
+				hover_canvas = null;
+				hover_field = null;
+				hover_framebuffer = null;
+			}
 		}
 		//on item select event
 		var item_select = function(){
@@ -168,15 +177,15 @@ module.exports = {
 			clear_events();
 			if(classes.indexOf("shield") >= 0){
 				//use shield field, and setup translation based on mouse position
-				var hover_canvas = elem('canvas', 'overlay rpg-canvas');
+				hover_canvas = elem('canvas', 'overlay rpg-canvas');
 				var ctx = hover_canvas.getContext('2d');
 				hover_canvas.width = global_vars.grid_canvas.w;
 				hover_canvas.height= global_vars.grid_canvas.h;
 				ship.grid.elem.parentNode.appendChild(hover_canvas);
-				var f = item.field.clone();
+				hover_field = item.field.clone();
 				//colorize
-				var framebuffer = ctx.createImageData(hover_canvas.width, hover_canvas.height);
-				var data = framebuffer.data;
+				hover_framebuffer = ctx.createImageData(hover_canvas.width, hover_canvas.height);
+				var data = hover_framebuffer.data;
 				//TODO: get value from global green color
 				for (var i = 0; i < data.length; i += 4) {
 					data[i]	  = 100;
@@ -185,20 +194,22 @@ module.exports = {
 					data[i+3] = 0;
 				}
 				//add a translate transform
-				f.addTransform(transforms.translate(3, 3));
-				var last_transform = f.transforms[f.transforms.length-1];
+				hover_field.addTransform(transforms.translate(3, 3));
+				var last_transform = hover_field.transforms[hover_field.transforms.length-1];
 				var hover_canvas_refresh = function(){
-					var data = framebuffer.data;
-					var field_data = f.render();
+					var data = hover_framebuffer.data;
+					var field_data = hover_field.render();
 					for (var i = 0; i < field_data.length; i++) {
 						data[i*4+3] = field_data[i];
 					}
-					ctx.putImageData(framebuffer, 0, 0);
+					ctx.putImageData(hover_framebuffer, 0, 0);
 				}
 				hover_canvas_refresh();
 				//move around center based on mouse
+				//TODO: use relative motion instead of absolute
+				var hover_enabled = false;
 				hover_canvas.onmousemove = function(e){
-					//console.log(e, last_transform);
+					if(!hover_enabled){ return; }
 					//get x/y on canvas
 					var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
 					var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
@@ -207,7 +218,13 @@ module.exports = {
 					//refresh the canvas
 					hover_canvas_refresh();
 				}
-				//TODO: only move around the field when clicked
+				//only move around the field when mouse is down
+				hover_canvas.onmouseup = function(e){
+					hover_enabled = false;
+				}
+				hover_canvas.onmousedown = function(e){
+					hover_enabled = true;
+				}
 				//setup detail panel
 				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
 				item_detail_content.appendChild(elem('span', 'value', item.consumption));
@@ -236,8 +253,8 @@ module.exports = {
 		};
 		//on item deselect
 		var item_deselect = function(e){
-			//TODO: check if not within item-thumb element
-			if(e.target.className != "tab-content"){
+			//check if not within item-thumb element
+			if(elem.withinClass(e.target, 'item-thumb')){
 				return;
 			}
 			//--- unselect previous
