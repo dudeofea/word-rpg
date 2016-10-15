@@ -127,6 +127,7 @@ module.exports = {
 	},
 
 	// make control panel so user can edit their upcoming moves
+	//TODO: add keyboard macros
 	make_control_panel: function(ship){
 		//TODO: add power bar on top of control panel to show energy left, about to be used by this turn
 		//TODO: on said power bar, add separate elements to show individual contributions of ship items to power consumption
@@ -183,18 +184,19 @@ module.exports = {
 				hover_canvas.height= global_vars.grid_canvas.h;
 				ship.grid.elem.parentNode.appendChild(hover_canvas);
 				hover_field = item.field.clone();
+				//get value from global green color
+				var rgb = convert.hex.rgb(global_vars.colors.green.replace('#', ''));
 				//colorize
 				hover_framebuffer = ctx.createImageData(hover_canvas.width, hover_canvas.height);
 				var data = hover_framebuffer.data;
-				//TODO: get value from global green color
 				for (var i = 0; i < data.length; i += 4) {
-					data[i]	  = 100;
-					data[i+1] = 255;
-					data[i+2] = 100;
+					data[i]	  = rgb[0];
+					data[i+1] = rgb[1];
+					data[i+2] = rgb[2];
 					data[i+3] = 0;
 				}
 				//add a translate transform
-				hover_field.addTransform(transforms.translate(3, 3));
+				hover_field.addTransform(transforms.translate(0, 0));
 				var last_transform = hover_field.transforms[hover_field.transforms.length-1];
 				var hover_canvas_refresh = function(){
 					var data = hover_framebuffer.data;
@@ -205,25 +207,32 @@ module.exports = {
 					ctx.putImageData(hover_framebuffer, 0, 0);
 				}
 				hover_canvas_refresh();
-				//move around center based on mouse
-				//TODO: use relative motion instead of absolute
+				//drag around shield position
 				var hover_enabled = false;
+				var last_pos = null;
+				var last_translate = {x: 0, y: 0};
 				hover_canvas.onmousemove = function(e){
 					if(!hover_enabled){ return; }
 					//get x/y on canvas
 					var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
 					var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
-					last_transform.tx = grid_x;
-					last_transform.ty = grid_y;
+					last_transform.tx = grid_x - last_pos.x + last_translate.x;
+					last_transform.ty = grid_y - last_pos.y + last_translate.y;
 					//refresh the canvas
 					hover_canvas_refresh();
 				}
 				//only move around the field when mouse is down
 				hover_canvas.onmouseup = function(e){
 					hover_enabled = false;
+					last_pos = null;
 				}
 				hover_canvas.onmousedown = function(e){
 					hover_enabled = true;
+					//get initial mouse / translate position
+					var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
+					var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
+					last_pos = {x: grid_x, y: grid_y};
+					last_translate = {x: last_transform.tx, y: last_transform.ty};
 				}
 				//setup detail panel
 				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
@@ -288,7 +297,7 @@ module.exports = {
 				header.appendChild(content_wrapper);
 			}
 		}
-		//TODO: setup detail view
+		//setup detail view
 		var item_detail = elem("div", "detail hide");
 		var item_detail_header = elem("p", "detail-title");
 		var item_detail_content = elem("div", "detail-content");
