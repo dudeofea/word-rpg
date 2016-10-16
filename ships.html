@@ -13,7 +13,7 @@
 		document.body.appendChild(main_screen);
 		var names = ['Zoikostra', 'Garanthuur', 'Ijiklin', 'Bolom', 'Septfire', 'Thalanmir', 'Wawok', 'The Unamed One', 'Greysbane', 'Furyton', 'Rhyolsteros', 'Hastesfas'];
 		for (var i = 0; i < names.length; i++) {
-			var ship = rpg.gen_ship(names[i]);
+			var ship = rpg.ship.gen_ship(names[i]);
 			main_screen.appendChild(rpg.ship.make_ui(ship, "player"));
 		}
 	}

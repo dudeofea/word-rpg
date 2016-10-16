@@ -8,7 +8,7 @@
 module.exports = {
 	//make a field bigger / smaller from center of grid
 	scale: function(cx, cy, scale){
-		var tr = {};
+		var tr = {type: 'scale'};
 		tr.run = function(xy){
 			return [(xy[0] - this.cx)/scale + this.cx, (xy[1] - this.cy)/scale + this.cy];
 		}
@@ -19,7 +19,7 @@ module.exports = {
 	},
 	//move a field over by some amount
 	translate: function(tx, ty){
-		var tr = {};
+		var tr = {type: 'translate'};
 		tr.run = function(xy){
 			return [xy[0] - this.tx, xy[1] - this.ty];
 		}

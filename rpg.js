@@ -157,7 +157,7 @@ rpg.load_combat = function(player, enemy, game_screen){
 		enemy.refresh();
 	});
 	//add a control panel so user can set up their attack / defense
-	var control_panel = rpg.ship.make_control_panel(player);
+	var control_panel = rpg.ship.make_control_panel(player, enemy);
 	//TODO: add enable/disable animation for control panel to indicate turns
 	// --- finally, add everything to screen
 	var ships = elem('div', "ships-wrapper");

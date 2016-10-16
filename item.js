@@ -48,6 +48,15 @@ module.exports = {
 		item.consumption_mul = 50 * level;
 		item.consumption_val = (0.5 + hash.normalize(40, 4)) * (item.damage_val * 0.8 + item.accuracy_val * 0.2);
 		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
+		//TODO: add blast radius stat
+		//TODO: randomize damage field
+		item.field = fields.composite({
+			elem: {
+				width: global_vars.grid_canvas.w,
+				height: global_vars.grid_canvas.h
+			}
+		});
+		item.field.addField(fields.gaussian(5, 5, 1, 1.3));
 		//reliability is proportional to the inverse of damage and proportional to accuracy
 		var rel = 0;	//TODO: add reliability stat
 		//draw up a weapon (basic rect style)

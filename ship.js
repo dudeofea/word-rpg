@@ -127,8 +127,8 @@ module.exports = {
 	},
 
 	// make control panel so user can edit their upcoming moves
-	//TODO: add keyboard macros
-	make_control_panel: function(ship){
+	//TODO: add keyboard macros to switch tabs, switch items, move hover editor
+	make_control_panel: function(ship, enemy){
 		//TODO: add power bar on top of control panel to show energy left, about to be used by this turn
 		//TODO: on said power bar, add separate elements to show individual contributions of ship items to power consumption
 		var wrapper = elem('div', "control-panel");
@@ -152,6 +152,61 @@ module.exports = {
 				hover_framebuffer = null;
 			}
 		}
+		//setup mouse events and animate grid canvas for editing
+		var hover_canvas_editor = function(color){
+			var ctx = hover_canvas.getContext('2d');
+			//colorize
+			hover_framebuffer = ctx.createImageData(hover_canvas.width, hover_canvas.height);
+			var data = hover_framebuffer.data;
+			for (var i = 0; i < data.length; i += 4) {
+				data[i]	  = color[0];
+				data[i+1] = color[1];
+				data[i+2] = color[2];
+				data[i+3] = 0;
+			}
+			//add a translate transform
+			hover_field.addTransform(transforms.translate(0, 0));
+			var last_transform = hover_field.transforms[hover_field.transforms.length-1];
+			var hover_canvas_refresh = function(){
+				var data = hover_framebuffer.data;
+				var field_data = hover_field.render();
+				for (var i = 0; i < field_data.length; i++) {
+					data[i*4+3] = field_data[i];
+				}
+				ctx.putImageData(hover_framebuffer, 0, 0);
+			}
+			hover_canvas_refresh();
+			//drag around shield position
+			//TODO: save shield position even after deselecting
+			var hover_enabled = false;
+			var last_pos = null;
+			var last_translate = {x: 0, y: 0};
+			hover_canvas.onmousemove = function(e){
+				if(!hover_enabled){ return; }
+				//get x/y on canvas
+				var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
+				var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
+				last_transform.tx = grid_x - last_pos.x + last_translate.x;
+				last_transform.ty = grid_y - last_pos.y + last_translate.y;
+				//refresh the canvas
+				hover_canvas_refresh();
+			}
+			//only move around the field when mouse is down
+			hover_canvas.onmouseup = function(e){
+				hover_enabled = false;
+				last_pos = null;
+			}
+			hover_canvas.onmousedown = function(e){
+				hover_enabled = true;
+				//get initial mouse / translate position
+				var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
+				var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
+				last_pos = {x: grid_x, y: grid_y};
+				last_translate = {x: last_transform.tx, y: last_transform.ty};
+			}
+		}
+		//TODO: add button to item cards to enable / disable (to save power)
+		//TODO: add button to item cards to add a modifier item
 		//on item select event
 		var item_select = function(){
 			var item = ship.items[this.index];
@@ -179,61 +234,14 @@ module.exports = {
 			if(classes.indexOf("shield") >= 0){
 				//use shield field, and setup translation based on mouse position
 				hover_canvas = elem('canvas', 'overlay rpg-canvas');
-				var ctx = hover_canvas.getContext('2d');
 				hover_canvas.width = global_vars.grid_canvas.w;
 				hover_canvas.height= global_vars.grid_canvas.h;
 				ship.grid.elem.parentNode.appendChild(hover_canvas);
+				//TODO: keep translation value in last transform of field
 				hover_field = item.field.clone();
 				//get value from global green color
-				var rgb = convert.hex.rgb(global_vars.colors.green.replace('#', ''));
-				//colorize
-				hover_framebuffer = ctx.createImageData(hover_canvas.width, hover_canvas.height);
-				var data = hover_framebuffer.data;
-				for (var i = 0; i < data.length; i += 4) {
-					data[i]	  = rgb[0];
-					data[i+1] = rgb[1];
-					data[i+2] = rgb[2];
-					data[i+3] = 0;
-				}
-				//add a translate transform
-				hover_field.addTransform(transforms.translate(0, 0));
-				var last_transform = hover_field.transforms[hover_field.transforms.length-1];
-				var hover_canvas_refresh = function(){
-					var data = hover_framebuffer.data;
-					var field_data = hover_field.render();
-					for (var i = 0; i < field_data.length; i++) {
-						data[i*4+3] = field_data[i];
-					}
-					ctx.putImageData(hover_framebuffer, 0, 0);
-				}
-				hover_canvas_refresh();
-				//drag around shield position
-				var hover_enabled = false;
-				var last_pos = null;
-				var last_translate = {x: 0, y: 0};
-				hover_canvas.onmousemove = function(e){
-					if(!hover_enabled){ return; }
-					//get x/y on canvas
-					var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
-					var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
-					last_transform.tx = grid_x - last_pos.x + last_translate.x;
-					last_transform.ty = grid_y - last_pos.y + last_translate.y;
-					//refresh the canvas
-					hover_canvas_refresh();
-				}
-				//only move around the field when mouse is down
-				hover_canvas.onmouseup = function(e){
-					hover_enabled = false;
-					last_pos = null;
-				}
-				hover_canvas.onmousedown = function(e){
-					hover_enabled = true;
-					//get initial mouse / translate position
-					var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
-					var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
-					last_pos = {x: grid_x, y: grid_y};
-					last_translate = {x: last_transform.tx, y: last_transform.ty};
-				}
+				var color = convert.hex.rgb(global_vars.colors.green.replace('#', ''));
+				hover_canvas_editor(color);
 				//setup detail panel
 				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
 				item_detail_content.appendChild(elem('span', 'value', item.consumption));
@@ -251,6 +259,17 @@ module.exports = {
 				item_detail.className = "detail blue";
 			//for weapons we can control where we aim it
 			}else if(classes.indexOf("weapon") >= 0){
+				//weapon editor, (very) similar to shield editor
+				hover_canvas = elem('canvas', 'overlay rpg-canvas');
+				hover_canvas.width = global_vars.grid_canvas.w;
+				hover_canvas.height= global_vars.grid_canvas.h;
+				enemy.grid.elem.parentNode.appendChild(hover_canvas);
+				//TODO: keep translation value in last transform of field
+				hover_field = item.field.clone();
+				//get value from global orange color
+				var color = convert.hex.rgb(global_vars.colors.orange.replace('#', ''));
+				hover_canvas_editor(color);
+				//setup detail pane
 				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
 				item_detail_content.appendChild(elem('span', 'value', item.consumption));
 				item_detail_content.appendChild(elem('p', 'fa-certificate', 'Damage'));
