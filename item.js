@@ -45,7 +45,7 @@ module.exports = {
 		item.accuracy_val = hash.normalize(4, 4);
 		item.accuracy = parseInt(item.accuracy_val * item.accuracy_mul);
 		//add energy consumption
-		item.consumption_mul = 50 * level;
+		item.consumption_mul = 20 * level;
 		item.consumption_val = (0.5 + hash.normalize(40, 4)) * (item.damage_val * 0.8 + item.accuracy_val * 0.2);
 		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
 		//TODO: add blast radius stat
@@ -98,11 +98,10 @@ module.exports = {
 		ctx.fillStyle = '#' + convert.lab.hex(20, a, b);
 		ctx.fillRect(top_left.x+w+barrel_w-7, parseInt(top_left.y+h/2-5), 4, 11);
 		//be a gun
-		item.run = function(){
+		item.run = function(available_energy){
 			//TODO: add modifiers
 			//TODO: be a gun
-			//energy consumption related to damage
-			return parseInt(this.damage/10);
+			//TODO: handle fractional available energy
 		}
 		return item;
 	},
@@ -117,7 +116,7 @@ module.exports = {
 		item.charge_rate_val = hash.normalize(4, 4);
 		item.charge_rate = parseInt(item.charge_rate_val * item.charge_rate_mul);
 		//add energy consumption
-		item.consumption_mul = 100 * level;
+		item.consumption_mul = 10 * level;
 		item.consumption_val = (0.5 + hash.normalize(20, 4)) * (item.max_shield_val * 0.2 + item.charge_rate_val * 0.8);
 		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
 		//TODO: add shield radius stat
@@ -157,15 +156,27 @@ module.exports = {
 				canvas.width/2+x, canvas.height/2+y, 5, 10, 2, ang, color2);
 		}
 		//be a shield
-		item.run = function(ship){
+		item.run = function(available_energy, ship){
 			//TODO: add modifiers
-			//TODO: be a shield
-			//TODO: add a weighted version of the shield to the ship's grid
+			//TODO: use separate grids for each shield and superimpose
+			//calc new shield value
+			var f = this.field.render();
 			for (var i = 0; i < ship.grid.defense.length; i++) {
-				ship.grid.defense[i] += 5;
+				//add the charge rate (weighted by field) to grid, while clamping on max value
+				var i_max = f[i] * this.max_shield;
+				var i_charge = f[i] * this.charge_rate;
+				var i_val = ship.grid.defense[i];
+				if(i_val < i_max){
+					var increase = Math.min(i_max - i_val, i_charge);
+					ship.grid.defense[i] += increase;
+				}else{
+					//TODO: add decay stat (related to reliability as well)
+					//shields decay by at most 50% every turn
+					var decrease = Math.min(i_val - i_max, i_val / 2);
+					ship.grid.defense[i] -= decrease;
+				}
 			}
-			//energy consumption related to charge rate
-			return parseInt(this.charge_rate/100);
+			//TODO: handle fractional available energy
 		};
 		return item;
 	},
@@ -176,6 +187,7 @@ module.exports = {
 		item.max_energy_mul = 100 * level;
 		item.max_energy_val = hash.normalize(0, 4);
 		item.max_energy = parseInt(item.max_energy_val * item.max_energy_mul);
+		item.energy = 0;
 		item.consumption_mul = 50 * level;
 		item.consumption_val = hash.normalize(4, 4);
 		item.consumption = -parseInt(item.consumption_val * item.consumption_mul);

@@ -111,50 +111,24 @@ rpg.make_attack_bar = function(attack_cb){
 
 //loads the combat screen between the player's ship and an enemy ship
 rpg.load_combat = function(player, enemy, game_screen){
-	//console.log(player.name + ' vs ' + enemy.name);
+	console.log(player.name + ' vs ' + enemy.name);
 	// --- create the UI elements
 	var combat_screen = elem('div', "rpg-combat-screen");
+	// --- initialize ships for combat
+	player.init();
+	enemy.init();
 	// --- make the uis
 	var player_ui = rpg.ship.make_ui(player, 'player');
 	var enemy_ui = rpg.ship.make_ui(enemy, 'enemy');
-	// --- set shields to max value
-	//make a basic field
-	var shield_grid = fields.composite(player.grid);
-	shield_grid.addField(fields.gaussian(12.5, 12.5, 1, 1.3));
-	shield_grid.addField(fields.gaussian(15, 15, 0.8, 0.5));
-	shield_grid.addField(fields.gaussian(10, 15, 0.8, 0.5));
-	shield_grid.addField(fields.gaussian(10, 10, 0.8, 0.5));
-	shield_grid.addField(fields.gaussian(15, 10, 0.8, 0.5));
-	player.grid.defense = shield_grid.render();
-	player.grid.refresh();
-	shield_grid.addTransform(transforms.scale(global_vars.grid_canvas.w/2, global_vars.grid_canvas.h/2, 12))
-	var frames = shield_grid.animateTransform(0, 10);
-	var frames_i = 0;
-	var set_grid = function(){
-		enemy.grid.defense = frames[frames_i++];
-		enemy.grid.refresh();
-		if(frames_i < frames.length -1){
-			setTimeout(set_grid, 100);
-		}
-	}
-	set_grid();
+	//TODO: --- set shields to max value
 	//TODO: --- setup attack events
 	//TODO: add grid glitter animation to show that it exists
 	//add an attack bar for sequencing turns
 	var attack_bar = rpg.make_attack_bar(function onattack(){
-		//TODO: check and throttle energy usage if above max throughput
-		//run the player items
-		for (var i = 0; i < player.items.length; i++) {
-			player.energy -= player.items[i].run(player);
-		}
-		//run the enemy items
-		for (var i = 0; i < enemy.items.length; i++) {
-			enemy.energy -= enemy.items[i].run(enemy);
-		}
+		//run a step for each ship
+		player.run_step();
+		enemy.run_step();
 		//TODO: check for lose/win conditions
-		//refresh both ship views
-		player.refresh();
-		enemy.refresh();
 	});
 	//add a control panel so user can set up their attack / defense
 	var control_panel = rpg.ship.make_control_panel(player, enemy);

@@ -120,7 +120,7 @@ module.exports = {
 			var posy = y - this.cy;
 			return this.const1*Math.exp(this.const2*(posx*posx + posy*posy));
 		}
-		field.const1 = strength*255;
+		field.const1 = strength;
 		field.const2 = -1/(2*radius*radius);
 		field.cx = cx;
 		field.cy = cy;

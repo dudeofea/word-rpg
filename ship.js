@@ -10,7 +10,7 @@ var global_vars = require('./globals.js');
 var convert = require('color-convert');
 var transforms = require('./transforms.js');
 
-//normalize a set of stats in object
+//normalize a set of stats in object so they have an average of 1.0
 function normalize_stats(obj, stats){
 	var avg = 0;
 	//get average
@@ -61,7 +61,7 @@ module.exports = {
 
 	// --- make the attack / defend grids
 	make_grid: function(){
-		var grid = {};
+		var grid = { max_val: 1.0 };
 		var canvas = elem('canvas', "rpg-canvas");
 		canvas.width = global_vars.grid_canvas.w;
 		canvas.height = global_vars.grid_canvas.h;
@@ -76,24 +76,13 @@ module.exports = {
 			data[i+2] = 255;
 			data[i+3] = 0;
 		}
-		//when damage is inflicted
-		grid.damage = function(dmg, x, y, callback){
-			this.defense[y*this.elem.width+x] -= dmg;
-			this.refresh();
-			//TODO: make extra canvas layer and fade with CSS transition
-		}
 		//when refreshing value
 		grid.refresh = function(){
 			var data = this.framebuffer.data;
 			for (var i = 0; i < this.defense.length; i++) {
-				data[i*4+3] = this.defense[i];
+				data[i*4+3] = 220 * this.defense[i] / this.max_val;
 			}
 			this.ctx.putImageData(this.framebuffer, 0, 0);
-		}
-		canvas.onmousedown = function(e){
-			var grid_x = Math.floor(e.target.width*e.layerX/e.target.clientWidth);
-			var grid_y = Math.floor(e.target.height*e.layerY/e.target.clientHeight);
-			grid.damage(15, grid_x, grid_y);
 		}
 		grid.elem = canvas;
 		return grid;
@@ -171,7 +160,7 @@ module.exports = {
 				var data = hover_framebuffer.data;
 				var field_data = hover_field.render();
 				for (var i = 0; i < field_data.length; i++) {
-					data[i*4+3] = field_data[i];
+					data[i*4+3] = field_data[i] * 255;
 				}
 				ctx.putImageData(hover_framebuffer, 0, 0);
 			}
@@ -238,12 +227,12 @@ module.exports = {
 				hover_canvas.height= global_vars.grid_canvas.h;
 				ship.grid.elem.parentNode.appendChild(hover_canvas);
 				//TODO: keep translation value in last transform of field
-				hover_field = item.field.clone();
+				hover_field = item.field;
 				//get value from global green color
 				var color = convert.hex.rgb(global_vars.colors.green.replace('#', ''));
 				hover_canvas_editor(color);
 				//setup detail panel
-				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
+				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy Consumption'));
 				item_detail_content.appendChild(elem('span', 'value', item.consumption));
 				item_detail_content.appendChild(elem('p', 'fa-shield', 'Maximum Shielding'));
 				item_detail_content.appendChild(elem('span', 'value', item.max_shield));
@@ -265,12 +254,12 @@ module.exports = {
 				hover_canvas.height= global_vars.grid_canvas.h;
 				enemy.grid.elem.parentNode.appendChild(hover_canvas);
 				//TODO: keep translation value in last transform of field
-				hover_field = item.field.clone();
+				hover_field = item.field;
 				//get value from global orange color
 				var color = convert.hex.rgb(global_vars.colors.orange.replace('#', ''));
 				hover_canvas_editor(color);
 				//setup detail pane
-				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy consumption'));
+				item_detail_content.appendChild(elem('p', 'fa-exchange', 'Energy Consumption'));
 				item_detail_content.appendChild(elem('span', 'value', item.consumption));
 				item_detail_content.appendChild(elem('p', 'fa-certificate', 'Damage'));
 				item_detail_content.appendChild(elem('span', 'value', item.damage));
@@ -486,12 +475,61 @@ module.exports = {
 				if(ret != null){ items[i] = ret; }
 			}
 		}
+		//initialize the ship for combat (full shields, full batteries, etc)
+		ship.init = function(){
+			//set batteries to full
+			var batteries = this.items_by_type('battery')
+			for (var i = 0; i < batteries.length; i++) {
+				batteries[i].energy = batteries[i].max_energy;
+			}
+		}
+		//run one step of energy consumption / item usage
+		ship.run_step = function(enemy){
+			//TODO: incorporate reliability trickle-down from batteries
+			//get available energy from batteries and such
+			var available_energy = 0;
+			var batteries = this.items_by_type('battery')
+			for (var i = 0; i < batteries.length; i++) {
+				available_energy -= batteries[i].consumption;
+			}
+			var inital_energy = available_energy;
+			//TODO: only run enabled items
+			//run the items
+			for (var i = 0; i < this.items.length; i++) {
+				if(this.items[i].type == 'battery'){ continue; }
+				available_energy -= this.items[i].consumption;
+				this.items[i].run(available_energy, ship, enemy);
+			}
+			//subtract energy used from batteries, sequentially
+			var spent_energy = inital_energy - available_energy;
+			for (var i = 0; i < batteries.length; i++) {
+				if(batteries[i].energy > 0){
+					var to_remove = Math.min(batteries[i].energy, spent_energy);
+					batteries[i].energy -= to_remove;
+					spent_energy -= to_remove;
+				};
+			}
+			//refresh the view
+			this.refresh();
+		}
 		//refresh all things related to a ship (health bar, energy, etc)
 		ship.refresh = function(){
-			this.energy_bar.val = this.energy;
+			//get ship total energy
+			this.energy_bar.val = 0;
+			var batteries = this.items_by_type('battery')
+			for (var i = 0; i < batteries.length; i++) {
+				this.energy_bar.val += batteries[i].energy;
+			}
 			this.energy_bar.refresh();
 			this.health_bar.val = this.hp;
 			this.health_bar.refresh();
+			//scale grid based on maximum attainable shield level
+			var shields = this.items_by_type('shield');
+			this.grid.max_val = 0;
+			for (var i = 0; i < shields.length; i++) {
+				this.grid.max_val = Math.max(shields[i].max_shield, this.grid.max_val);
+			}
+			//TODO: give boosted shields a blue tinge when past max shield level
 			this.grid.refresh();
 		}
 		//TODO: draw boosters on left of spaceship by spreading out
@@ -527,16 +565,18 @@ module.exports = {
 		var weapon = rpg.item.gen_weapon(hash, 1);
 		weapon.name = "Starter";
 
-		//normalize across max energy, throughput, and max health
-		var norm = {max_energy: battery.max_energy_val, hp_max: ship.hp_max_val};
-		normalize_stats(norm, ['max_energy', 'hp_max']);
+		//TODO: normalize across max energy, shield, damage, and max health
+		var norm = {max_energy: battery.max_energy_val, max_shield: shield.max_shield_val, damage: weapon.damage_val, hp_max: ship.hp_max_val};
+		normalize_stats(norm, ['max_energy', 'max_shield', 'damage', 'hp_max']);
 		battery.max_energy_val = norm.max_energy;
 		battery.max_energy = parseInt(battery.max_energy_mul * battery.max_energy_val);
+		shield.max_shield_val = norm.max_shield;
+		shield.max_shield = parseInt(shield.max_shield_mul * shield.max_shield_val);
+		weapon.damage_val = norm.damage;
+		weapon.damage = parseInt(weapon.damage_mul * weapon.damage_val);
 		ship.hp_max_val = norm.hp_max;
 		ship.hp_max = parseInt(ship.hp_max_mul * ship.hp_max_val);
 		ship.hp = ship.hp_max;
-		ship.energy_max = battery.max_energy;
-		ship.energy = ship.energy_max;
 
 		//get stat boosts
 		ship['e_max_bst'] = hash.normalize(12, 4);
