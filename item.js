@@ -159,12 +159,19 @@ module.exports = {
 		item.run = function(available_energy, ship){
 			//TODO: add modifiers
 			//TODO: use separate grids for each shield and superimpose
+			//handle fractional available energy
+			var charge_rate = this.charge_rate;
+			var max_shield = this.max_shield;
+			if(available_energy < this.consumption){
+				charge_rate *= available_energy / this.consumption;
+				max_shield  *= available_energy / this.consumption;
+			}
 			//calc new shield value
 			var f = this.field.render();
 			for (var i = 0; i < ship.grid.defense.length; i++) {
 				//add the charge rate (weighted by field) to grid, while clamping on max value
-				var i_max = f[i] * this.max_shield;
-				var i_charge = f[i] * this.charge_rate;
+				var i_max = f[i] * max_shield;
+				var i_charge = f[i] * charge_rate;
 				var i_val = ship.grid.defense[i];
 				if(i_val < i_max){
 					var increase = Math.min(i_max - i_val, i_charge);
@@ -176,7 +183,6 @@ module.exports = {
 					ship.grid.defense[i] -= decrease;
 				}
 			}
-			//TODO: handle fractional available energy
 		};
 		return item;
 	},

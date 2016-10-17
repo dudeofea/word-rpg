@@ -490,7 +490,7 @@ module.exports = {
 			var available_energy = 0;
 			var batteries = this.items_by_type('battery')
 			for (var i = 0; i < batteries.length; i++) {
-				available_energy -= batteries[i].consumption;
+				available_energy += Math.min(-batteries[i].consumption, batteries[i].energy);
 			}
 			var inital_energy = available_energy;
 			//TODO: only run enabled items
@@ -498,6 +498,7 @@ module.exports = {
 			for (var i = 0; i < this.items.length; i++) {
 				if(this.items[i].type == 'battery'){ continue; }
 				available_energy -= this.items[i].consumption;
+				if(available_energy < 0){ available_energy = 0; }
 				this.items[i].run(available_energy, ship, enemy);
 			}
 			//subtract energy used from batteries, sequentially
