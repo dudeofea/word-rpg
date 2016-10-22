@@ -98,9 +98,10 @@ module.exports = {
 		ctx.fillStyle = '#' + convert.lab.hex(20, a, b);
 		ctx.fillRect(top_left.x+w+barrel_w-7, parseInt(top_left.y+h/2-5), 4, 11);
 		//be a gun
-		item.run = function(available_energy){
+		item.run = function(available_energy, ship, enemy){
 			//TODO: add modifiers
-			//TODO: be a gun
+			//TODO: subtract damage from shields, then from health
+
 			//TODO: handle fractional available energy
 		}
 		return item;
@@ -178,8 +179,8 @@ module.exports = {
 					ship.grid.defense[i] += increase;
 				}else{
 					//TODO: add decay stat (related to reliability as well)
-					//shields decay by at most 50% every turn
-					var decrease = Math.min(i_val - i_max, i_val / 2);
+					//shields decay by at most 20% every turn
+					var decrease = Math.min(i_val - i_max, i_val * 0.2);
 					ship.grid.defense[i] -= decrease;
 				}
 			}

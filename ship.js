@@ -154,6 +154,7 @@ module.exports = {
 				data[i+3] = 0;
 			}
 			//add a translate transform
+			//TODO: don't re-add this transform over and over when editing
 			hover_field.addTransform(transforms.translate(0, 0));
 			var last_transform = hover_field.transforms[hover_field.transforms.length-1];
 			var hover_canvas_refresh = function(){
@@ -166,7 +167,6 @@ module.exports = {
 			}
 			hover_canvas_refresh();
 			//drag around shield position
-			//TODO: save shield position even after deselecting
 			var hover_enabled = false;
 			var last_pos = null;
 			var last_translate = {x: 0, y: 0};

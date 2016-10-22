@@ -126,8 +126,8 @@ rpg.load_combat = function(player, enemy, game_screen){
 	//add an attack bar for sequencing turns
 	var attack_bar = rpg.make_attack_bar(function onattack(){
 		//run a step for each ship
-		player.run_step();
-		enemy.run_step();
+		player.run_step(enemy);
+		enemy.run_step(player);
 		//TODO: check for lose/win conditions
 	});
 	//add a control panel so user can set up their attack / defense
