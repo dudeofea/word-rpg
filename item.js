@@ -27,10 +27,11 @@ module.exports = {
 		var generators = [this.gen_battery, this.gen_shield, this.gen_weapon];
 		//get item type
 		var i = parseInt(hash.normalize(16, 4)*generators.length);
-		//console.log(i);
 		var item = generators[i](hash, level);
 		item.name = name;
 		//TODO: add a health stat to items
+		//TODO: add a size attribute to items (either a box dimension or a shape grid), even to mod items
+		item.size = {x: 3, y: 2};
 		//TODO: add capacitor item for charging bursts
 		return item;
 	},
@@ -198,10 +199,8 @@ module.exports = {
 		var ctx = canvas.getContext('2d');
 		//pick between 1 - 5 partitions
 		var part_num = parseInt(Math.ceil(hash.normalize(10, 8) * 5));
-		//console.log('partitions: ', part_num);
 		//get height of partitions (margins / dividers are fixed)
 		var part_h = (canvas.width - 2 * 10 - (part_num - 1) * 5)/part_num;
-		//console.log('width: ', part_h);
 		//pick a radius (up to 50% of height, and at least 3px)
 		var radius = hash.normalize(30, 4) * part_h / 2 + 3;
 		//pick a width (at least same as height+5 or up to canvas.width-2*10)
@@ -227,7 +226,6 @@ module.exports = {
 			rpg.draw.rounded_rect(ctx, (canvas.width - part_w)/2, i*(part_h+5)+10, part_w, part_h, radius, color1);
 		}
 		//consumes no energy
-		//TODO: add energy to energy pool when battery is run
 		item.run = function(){ return 0; }
 		return item;
 	},

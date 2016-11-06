@@ -402,10 +402,11 @@ module.exports = {
 			}
 			return true;
 		}
+		//TODO: add ui control for zooming in/out of ship so you can see things better
+		//TODO: add ui control for panning to different parts of ship
 		//draw a ship based on a floorplan (place where you put items and shit)
 		var draw_ship = function(layout){
 			var tile_size = global_vars.ship_canvas.w / layout.width;
-			console.log(tile_size)
 			var border_size = 10;
 			var layout_grid = layout.render();
 			for (var i = 0; i < layout_grid.length; i++) {
@@ -521,7 +522,7 @@ module.exports = {
 		// --- generate virtual ship grid, on the main attack/defend grid
 		var v_grid = global_vars.grid_canvas;
 		var ship_layout = fields.composite(v_grid);			//boolean grid of what tiles are inside/outside the ship
-		var main_rect = gen_rect(21, v_grid.w, {x: v_grid.w/2, y: v_grid.h/2});
+		var main_rect = gen_rect(21, 0.8 * v_grid.w, {x: v_grid.w/2, y: v_grid.h/2});
 		ship_layout.addField(fields.rectangle(main_rect, 1));
 		//add extra appendages to ship (rectangles mostly)
 		//TODO: fix weirdness with some appendages, and add moar
@@ -608,12 +609,8 @@ module.exports = {
 			//TODO: give boosted shields a blue tinge when past max shield level
 			this.grid.refresh();
 		}
-		//TODO: draw boosters on left of spaceship by spreading out
-		//		a fixed width of "flame" animation, so it shows up as
-		//		one big booster or several small ones
 		//TODO: draw space backgroud (with neat colors)
 		//TODO: draw stars, planets, dust, mist, etc
-		//console.log(ship);
 		ship.elem = canvas;
 		return ship;
 	},
