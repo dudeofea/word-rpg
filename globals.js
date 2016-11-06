@@ -2,7 +2,7 @@
 //	GLOBAL VARIABLES
 //
 module.exports = {
-	ship_canvas: {w: 200, h: 200},
+	ship_canvas: {w: 344, h: 344},
 	grid_canvas: {w: 25, h: 25},
 	item_canvas: {w: 80, h: 80},
 	colors: {

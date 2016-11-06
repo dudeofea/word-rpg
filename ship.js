@@ -375,6 +375,7 @@ module.exports = {
 		var b = 60*(hash.normalize(42, 4) - 0.5);
 		var color1 = '#'+convert.lab.hex(30, a, b);
 		var color1_border = '#'+convert.lab.hex(20, a, b);
+		var color1_grid = '#'+convert.lab.hex(23, a, b);
 		var color2 = '#'+convert.lab.hex(5, a, b);
 		// --- make a basic shape to build on
 		//draw a generated rectangle
@@ -404,12 +405,20 @@ module.exports = {
 		//draw a ship based on a floorplan (place where you put items and shit)
 		var draw_ship = function(layout){
 			var tile_size = global_vars.ship_canvas.w / layout.width;
-			var border_size = 5;
+			console.log(tile_size)
+			var border_size = 10;
 			var layout_grid = layout.render();
 			for (var i = 0; i < layout_grid.length; i++) {
 				if(layout_grid[i] > 0){
 					var x = i % layout.width;
 					var y = (i - x) / layout.width;
+					//calc variable tile size to fit to pixel borders
+					var x_min = Math.ceil(x * tile_size);
+					var x_max = Math.ceil((x + 1) * tile_size);
+					var y_min = Math.ceil(y * tile_size);
+					var y_max = Math.ceil((y + 1) * tile_size);
+					var tile_size_x = x_max - x_min;
+					var tile_size_y = y_max - y_min;
 					//figure out which sides are open (not inside) and draw edges / corners
 					ctx.fillStyle = color1_border;
 					var top_open = 		is_open(layout_grid, x, y - 1, layout.width);
@@ -418,41 +427,49 @@ module.exports = {
 					var right_open = 	is_open(layout_grid, x + 1, y, layout.width);
 					//edges
 					if(top_open){
-						ctx.fillRect(x * tile_size, y * tile_size - border_size, tile_size, border_size);
+						ctx.fillRect(x_min, y_min - border_size, tile_size_x, border_size);
 					}
 					if(bottom_open){
-						ctx.fillRect(x * tile_size, y * tile_size + tile_size, tile_size, border_size);
+						ctx.fillRect(x_min, y_max, tile_size_x, border_size);
 					}
 					if(left_open){
-						ctx.fillRect(x * tile_size - border_size, y * tile_size, border_size, tile_size);
+						ctx.fillRect(x_min - border_size, y_min, border_size, tile_size_y);
 					}
 					if(right_open){
-						ctx.fillRect(x * tile_size + tile_size, y * tile_size, border_size, tile_size);
+						ctx.fillRect(x_max, y_min, border_size, tile_size_y);
 					}
 					//corners
 					if(top_open && left_open){
 						ctx.beginPath();
-						ctx.arc(x * tile_size, y * tile_size, border_size, 0, 2*Math.PI);
+						ctx.arc(x_min, y_min, border_size, 0, 2*Math.PI);
 						ctx.fill();
 					}
 					if(top_open && right_open){
 						ctx.beginPath();
-						ctx.arc(x * tile_size + tile_size, y * tile_size, border_size, 0, 2*Math.PI);
+						ctx.arc(x_max, y_min, border_size, 0, 2*Math.PI);
 						ctx.fill();
 					}
 					if(bottom_open && left_open){
 						ctx.beginPath();
-						ctx.arc(x * tile_size, y * tile_size + tile_size, border_size, 0, 2*Math.PI);
+						ctx.arc(x_min, y_max, border_size, 0, 2*Math.PI);
 						ctx.fill();
 					}
 					if(bottom_open && right_open){
 						ctx.beginPath();
-						ctx.arc(x * tile_size + tile_size, y * tile_size + tile_size, border_size, 0, 2*Math.PI);
+						ctx.arc(x_max, y_max, border_size, 0, 2*Math.PI);
 						ctx.fill();
 					}
 					//draw the actual tile where things go
 					ctx.fillStyle = color1;
-					ctx.fillRect(x * tile_size, y * tile_size, tile_size, tile_size);
+					ctx.fillRect(x_min, y_min, tile_size_x, tile_size_y);
+					//grid lines
+					ctx.fillStyle = color1_grid;
+					if(!bottom_open){	//horizontal
+						ctx.fillRect(x_min + 2, y_max - 1, tile_size_x - 4, 1);
+					}
+					if(!right_open){	//vertical
+						ctx.fillRect(x_max - 1, y_min + 2, 1, tile_size_y - 4);
+					}
 				}
 			}
 			//TODO: draw rocket boosters in back of ship

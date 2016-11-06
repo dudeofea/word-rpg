@@ -181,7 +181,7 @@ module.exports = {
 	gen_battery: function(hash, level){
 		var item = {hash: hash, type: 'battery', name_suffix: 'cell'};
 		//keep the multipliers/values in case we need them
-		item.max_energy_mul = 100 * level;
+		item.max_energy_mul = 1000 * level;
 		item.max_energy_val = hash.normalize(0, 4);
 		item.max_energy = parseInt(item.max_energy_val * item.max_energy_mul);
 		item.energy = 0;
