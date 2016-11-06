@@ -50,12 +50,7 @@ module.exports = {
 		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
 		//TODO: add blast radius stat
 		//TODO: randomize damage field
-		item.field = fields.composite({
-			elem: {
-				width: global_vars.grid_canvas.w,
-				height: global_vars.grid_canvas.h
-			}
-		});
+		item.field = fields.composite(global_vars.grid_canvas);
 		item.field.addField(fields.gaussian(5, 5, 1, 1.3));
 		//reliability is proportional to the inverse of damage and proportional to accuracy
 		var rel = 0;	//TODO: add reliability stat
@@ -122,12 +117,7 @@ module.exports = {
 		item.consumption = parseInt(item.consumption_val * item.consumption_mul);
 		//TODO: add shield radius stat
 		//TODO: randomize shield field
-		item.field = fields.composite({
-			elem: {
-				width: global_vars.grid_canvas.w,
-				height: global_vars.grid_canvas.h
-			}
-		});
+		item.field = fields.composite(global_vars.grid_canvas);
 		item.field.addField(fields.gaussian(5, 5, 1, 1.3));
 		//reliability is proportional to the inverse of charge_rate and max shield
 		var rel = 0;	//TODO: add reliability stat

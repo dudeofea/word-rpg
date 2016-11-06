@@ -9,6 +9,7 @@ var elem = require('./elem.js');
 var global_vars = require('./globals.js');
 var convert = require('color-convert');
 var transforms = require('./transforms.js');
+var fields = require('./fields.js');
 
 //normalize a set of stats in object so they have an average of 1.0
 function normalize_stats(obj, stats){
@@ -22,6 +23,11 @@ function normalize_stats(obj, stats){
 	for (var i = 0; i < stats.length; i++) {
 		obj[stats[i]] /= avg;
 	}
+}
+
+//linearly interpolate between two values with a 0-1 normalized value
+function lerp(start, end, value){
+	return start + (end - start)*value;
 }
 
 module.exports = {
@@ -368,6 +374,7 @@ module.exports = {
 		var a = 60*(hash.normalize(58, 4) - 0.5);
 		var b = 60*(hash.normalize(42, 4) - 0.5);
 		var color1 = '#'+convert.lab.hex(30, a, b);
+		var color1_border = '#'+convert.lab.hex(20, a, b);
 		var color2 = '#'+convert.lab.hex(5, a, b);
 		// --- make a basic shape to build on
 		//draw a generated rectangle
@@ -386,20 +393,85 @@ module.exports = {
 				draw_rect(rects[i]);
 			}
 		}
+		//checks if a spot on a grid is zero (nothing there)
+		var is_open = function(grid, x, y, width){
+			var i = x + y * width;
+			if(i < 0 || i > grid.length || grid[i] != 0){
+				return false;
+			}
+			return true;
+		}
+		//draw a ship based on a floorplan (place where you put items and shit)
+		var draw_ship = function(layout){
+			var tile_size = global_vars.ship_canvas.w / layout.width;
+			var border_size = 5;
+			var layout_grid = layout.render();
+			for (var i = 0; i < layout_grid.length; i++) {
+				if(layout_grid[i] > 0){
+					var x = i % layout.width;
+					var y = (i - x) / layout.width;
+					//figure out which sides are open (not inside) and draw edges / corners
+					ctx.fillStyle = color1_border;
+					var top_open = 		is_open(layout_grid, x, y - 1, layout.width);
+					var bottom_open = 	is_open(layout_grid, x, y + 1, layout.width);
+					var left_open = 	is_open(layout_grid, x - 1, y, layout.width);
+					var right_open = 	is_open(layout_grid, x + 1, y, layout.width);
+					//edges
+					if(top_open){
+						ctx.fillRect(x * tile_size, y * tile_size - border_size, tile_size, border_size);
+					}
+					if(bottom_open){
+						ctx.fillRect(x * tile_size, y * tile_size + tile_size, tile_size, border_size);
+					}
+					if(left_open){
+						ctx.fillRect(x * tile_size - border_size, y * tile_size, border_size, tile_size);
+					}
+					if(right_open){
+						ctx.fillRect(x * tile_size + tile_size, y * tile_size, border_size, tile_size);
+					}
+					//corners
+					if(top_open && left_open){
+						ctx.beginPath();
+						ctx.arc(x * tile_size, y * tile_size, border_size, 0, 2*Math.PI);
+						ctx.fill();
+					}
+					if(top_open && right_open){
+						ctx.beginPath();
+						ctx.arc(x * tile_size + tile_size, y * tile_size, border_size, 0, 2*Math.PI);
+						ctx.fill();
+					}
+					if(bottom_open && left_open){
+						ctx.beginPath();
+						ctx.arc(x * tile_size, y * tile_size + tile_size, border_size, 0, 2*Math.PI);
+						ctx.fill();
+					}
+					if(bottom_open && right_open){
+						ctx.beginPath();
+						ctx.arc(x * tile_size + tile_size, y * tile_size + tile_size, border_size, 0, 2*Math.PI);
+						ctx.fill();
+					}
+					//draw the actual tile where things go
+					ctx.fillStyle = color1;
+					ctx.fillRect(x * tile_size, y * tile_size, tile_size, tile_size);
+				}
+			}
+			//TODO: draw rocket boosters in back of ship
+			//TODO: draw other ship accessories  (portholes, dents, etc)
+		}
 		//generate a basic rectangle
-		var gen_rect = function(hash_pos, scale, center, origin){
-			var width = (hash.normalize(hash_pos, 4) + 0.2) * scale;
-			var area = Math.pow(scale/2, 2);
+		var gen_rect = function(hash_ind, scale, center, origin_str){
+			var width = lerp(0.2, 0.8, hash.normalize(hash_ind, 4)) * scale;
+			var area = Math.pow((0.8*scale)/2, 2);
 			var rect = {x: center.x, y: center.y, w: width, h: area/width};
 			//adjust x/y for origin
-			if(origin == 'top'){ 	rect.y += rect.h/2 - 1; }
-			if(origin == 'bottom'){ rect.y -= rect.h/2 - 1; }
-			if(origin == 'left'){ 	rect.x += rect.w/2 - 1; }
-			if(origin == 'right'){ 	rect.x -= rect.w/2 - 1; }
+			if(origin_str == 'top'){ 	rect.y += rect.h/2 - 1; }
+			if(origin_str == 'bottom'){ rect.y -= rect.h/2 - 1; }
+			if(origin_str == 'left'){ 	rect.x += rect.w/2 - 1; }
+			if(origin_str == 'right'){ 	rect.x -= rect.w/2 - 1; }
 			return rect;
 		};
-		//get a perimeter point based on [0-1] value
-		//TODO: quantize perimeter points to help line things up better
+		//get a perimeter point based on [0-1] value,
+		//returns an x / y and a string of where the origin of the rectange to insert should be
 		var pick_peri = function(val, rect){
 			//pick a point on the perimeter of a rectangle
 			//top left is start, we count clockwise
@@ -429,33 +501,19 @@ module.exports = {
 		// --- background
 		ctx.fillStyle = color2;
 		ctx.fillRect(0,0,canvas.width,canvas.height);
-		//large main body
-		var rects = [];
-		var peris = [];
-		rects.push(gen_rect(21, 75, {x: canvas.width/2, y: canvas.height/2}));
-		//3 medium appendages
-		for (var i = 0; i < 3; i++) {
-			var val = hash.normalize(15*i + 4, 2);
-			//make sure the rectangle have enough space between them
-			var val_good = false;
-			while(!val_good){
-				val_good = true;
-				for (var j = 0; j < peris.length; j++) {
-					if(Math.abs(peris[j] - val) < 0.1){
-						val += 0.1;
-						if(val > 1.0){ val -= 1.0; }
-						val_good = false;
-					}
-				}
-			}
-			peris.push(val);
-			//add the rectangle
-			var p = pick_peri(val, rects[0]);
-			rects.push(gen_rect(15*i + 7, 40, p, p.o));
-			//TODO: find rects that are too skinny and on corners and push them
-			//		into the main rectangle
-		}
-		draw_rects(rects);
+		// --- generate virtual ship grid, on the main attack/defend grid
+		var v_grid = global_vars.grid_canvas;
+		var ship_layout = fields.composite(v_grid);			//boolean grid of what tiles are inside/outside the ship
+		var main_rect = gen_rect(21, v_grid.w, {x: v_grid.w/2, y: v_grid.h/2});
+		ship_layout.addField(fields.rectangle(main_rect, 1));
+		//add extra appendages to ship (rectangles mostly)
+		//TODO: fix weirdness with some appendages, and add moar
+		var pos1 = hash.normalize(15, 4);
+		var peri1 = pick_peri(pos1, main_rect);
+		var append1 = gen_rect(30, 10, peri1, peri1.o);
+		ship_layout.addField(fields.rectangle(append1, 1));
+		//generate ship visual around said virtual grid (with rounded corners and such)
+		draw_ship(ship_layout);
 		// --- ship public methods
 		//get all ship items of a type
 		ship.items_by_type = function(type){

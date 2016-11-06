@@ -14,10 +14,10 @@ function lerp(start, end, value){
 
 module.exports = {
 	//for creating composite fields
-	composite: function(template){
+	composite: function(size){
 		var comp = {};
-		comp.width = template.elem.width;
-		comp.height= template.elem.height;
+		comp.width = size.w;
+		comp.height= size.h;
 		comp.fields = [];
 		comp.transforms = [];
 		comp.addField = function(f){
@@ -66,6 +66,7 @@ module.exports = {
 		}
 		//return an array to draw on a canvas
 		comp.render = function(){
+			//make two 1d arrays of dimensions width x height
 			var arr = Array.apply(null, Array(this.width*this.height)).map(Number.prototype.valueOf, 0);
 			var arr_xy = Array.apply(null, Array(this.width*this.height)).map(Number.prototype.valueOf, 0);
 			//build array of xy points
@@ -114,7 +115,7 @@ module.exports = {
 	},
 	//a circular blur type thing
 	gaussian: function(cx, cy, strength, radius){
-		var field = {}
+		var field = {};
 		field.run = function(x, y){
 			var posx = x - this.cx;
 			var posy = y - this.cy;
@@ -124,6 +125,22 @@ module.exports = {
 		field.const2 = -1/(2*radius*radius);
 		field.cx = cx;
 		field.cy = cy;
+		return field;
+	},
+	rectangle: function(rect, strength){
+		var field = {};
+		field.run = function(x, y){
+			//check if in rectangle or not
+			if(x < this.x_min || x > this.x_max || y < this.y_min || y > this.y_max){
+				return 0;
+			}
+			return this.on_value;
+		}
+		field.x_min = rect.x - rect.w / 2;
+		field.x_max = rect.x + rect.w / 2;
+		field.y_min = rect.y - rect.h / 2;
+		field.y_max = rect.y + rect.h / 2;
+		field.on_value = strength;
 		return field;
 	},
 	//a blurry arrow type thing
