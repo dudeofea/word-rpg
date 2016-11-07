@@ -1,0 +1,15 @@
+Next things to work on (in order of importance to a viable game):
+- Add items into ship grid (as in a physical location), and draw that
+- Add damage calculation from shields / ship hull / item damage
+	- First shields take the damage (these can leak based on reliability)
+	- Then the hull must be penetrated, so that takes damage (this can also leak damage)
+	- Then any items below that take damage (no leakage here)
+	- Then the "bottom" hull takes damage once items above are no longer there
+	- If top/bottom hull is penetrated, you get a hole
+	- If holes add up to a fissure, entire sections of the ship can detach
+	- Don't worry about oxygen, I'll just say there is no pilot / you're wearing an O2 mask
+	- If the G.O.D. core is destroyed, you're fucked. checkmate
+	- Items perform worse when damaged, and have a health stat
+	- Destroyed ship sections never recover, only get patched back up to having smooth edges again
+- Add a somewhat simple enemy AI (aim somewhere on ship, keep your shields up)
+- Detect a winner

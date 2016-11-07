@@ -231,7 +231,7 @@ module.exports = {
 				hover_canvas = elem('canvas', 'overlay rpg-canvas');
 				hover_canvas.width = global_vars.grid_canvas.w;
 				hover_canvas.height= global_vars.grid_canvas.h;
-				ship.grid.elem.parentNode.appendChild(hover_canvas);
+				ship.grid.elem.parentNode.insertBefore(hover_canvas, ship.grid.elem);	//insert right before our ship's canvas
 				//TODO: keep translation value in last transform of field
 				hover_field = item.field;
 				//get value from global green color
@@ -258,7 +258,7 @@ module.exports = {
 				hover_canvas = elem('canvas', 'overlay rpg-canvas');
 				hover_canvas.width = global_vars.grid_canvas.w;
 				hover_canvas.height= global_vars.grid_canvas.h;
-				enemy.grid.elem.parentNode.appendChild(hover_canvas);
+				enemy.grid.elem.parentNode.insertBefore(hover_canvas, enemy.grid.elem);		//insert right before enemy ship's canvas
 				//TODO: keep translation value in last transform of field
 				hover_field = item.field;
 				//get value from global orange color
