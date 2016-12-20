@@ -344,29 +344,106 @@ module.exports = {
 	//generate a ship based off a string
 	gen_ship: function(name){
 		var hash = Sha256.hash(name);
-		var ship = {};
-		// --- generate stats
-		ship = this.gen_ship_stats(hash)
-		ship['name'] = name;
-		ship['hash'] = hash;
+		var stats = this.gen_ship_stats(hash);
+		//TODO: make ship params from hash
+		var params = {};
+		// --- pick color scheme
+		//a set of hues/saturations is picked while the lightness is controlled
+		var a = 60*(normalize.hash(hash, 58, 4) - 0.5);
+		var b = 60*(normalize.hash(hash, 42, 4) - 0.5);
+		params.color_ship_main = '#'+convert.lab.hex(30, a, b);
+		params.color_ship_border = '#'+convert.lab.hex(20, a, b);
+		params.color_ship_grid = '#'+convert.lab.hex(23, a, b);
+		params.color_back = '#'+convert.lab.hex(5, a, b);
+		// --- ship layout generation
+		params.ship_main_rect_ratio = normalize.hash(hash, 21, 4);
+		params.ship_aux_rects = [
+			{pos: normalize.hash(hash, 15, 4), ratio: normalize.hash(hash, 30, 4)},
+			{pos: normalize.hash(hash, 40, 4), ratio: normalize.hash(hash, 50, 4)},
+			{pos: normalize.hash(hash, 30, 4), ratio: normalize.hash(hash, 15, 4)}
+		];
+		var ship = this.create_ship(params, stats.items);
+		ship.name = name;
+		ship.hash = hash;
+		return ship;
+	},
+
+	gen_ship_stats: function(hash){
+		//stats are:
+		//
+		//      - HP: max health points, represents the ship integrity
+		//      - ENRG: max energy levels, energy is used to perform actions. if you run out you essentially die
+		//      - THRP: throughput, how much energy the ship can source in a turn
+		//				calculated from the sum of all battery energ production values (the opposite of consumption)
+		//
+		//      - level up boosts are how much stats grow per level.
+		//        ex: HP_BST, etc
+		//
+		// --- generate basic items
+		ship = {};
+		ship['hp_max_val'] = normalize.hash(hash, 8, 4);
+		ship['hp_max_mul'] = 100;
+
+		var battery = ship_items.gen_battery(hash, 1);
+		battery.name = "Starter";
+		var shield = ship_items.gen_shield(hash, 1);
+		shield.name = "Starter";
+		var weapon = ship_items.gen_weapon(hash, 1);
+		weapon.name = "Starter";
+
+		//normalize across max energy, shield, damage, and max health
+		var norm = {max_energy: battery.max_energy_val, max_shield: shield.max_shield_val, damage: weapon.damage_val, hp_max: ship.hp_max_val};
+		normalize.stats(norm, ['max_energy', 'max_shield', 'damage', 'hp_max']);
+		battery.max_energy_val = norm.max_energy;
+		battery.max_energy = parseInt(battery.max_energy_mul * battery.max_energy_val);
+		shield.max_shield_val = norm.max_shield;
+		shield.max_shield = parseInt(shield.max_shield_mul * shield.max_shield_val);
+		weapon.damage_val = norm.damage;
+		weapon.damage = parseInt(weapon.damage_mul * weapon.damage_val);
+		ship.hp_max_val = norm.hp_max;
+		ship.hp_max = parseInt(ship.hp_max_mul * ship.hp_max_val);
+		ship.hp = ship.hp_max;
+
+		//get stat boosts
+		ship['e_max_bst'] = normalize.hash(hash, 12, 4);
+		ship['thrp_bst'] = normalize.hash(hash, 16, 4);
+		ship['hp_max_bst'] = normalize.hash(hash, 20, 4);
+		//normalize across stat boosts
+		normalize.stats(ship, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
+		//add the base items
+		ship.items = [battery, shield, weapon];
+		return ship;
+	},
+
+	//create/load a ship with a set of parameters
+	//TODO: add given items
+	create_ship: function(params, items){
+		var ship_defaults = {
+			color_ship_main: '#EEE',
+			color_ship_border: '#AAA',
+			color_ship_grid: '#CCC',
+			color_back: '#333',
+			ship_main_rect_ratio: 0.5,
+			ship_aux_rects: []
+		};
+		//get all given ship parameters
+		var ship_spec = ship_defaults;
+		for (var p in params) {
+			if (params.hasOwnProperty(p)) {
+				ship_spec[p] = params[p];
+			}
+		}
+		var ship = { items: items };
 		// --- generate graphics
 		var canvas = elem('canvas', 'rpg-canvas');
 		canvas.height = global_vars.ship_canvas.w;
 		canvas.width = global_vars.ship_canvas.h;
 		ctx = canvas.getContext('2d');
-		// --- pick colors scheme
-		//a set of hues/saturations is picked while the lightness is controlled
-		var a = 60*(normalize.hash(hash, 58, 4) - 0.5);
-		var b = 60*(normalize.hash(hash, 42, 4) - 0.5);
-		var color1 = '#'+convert.lab.hex(30, a, b);
-		var color1_border = '#'+convert.lab.hex(20, a, b);
-		var color1_grid = '#'+convert.lab.hex(23, a, b);
-		var color2 = '#'+convert.lab.hex(5, a, b);
 		// --- make a basic shape to build on
 		//draw a generated rectangle
 		var draw_rect = function(rect){
 			//draw the rectangle
-			ctx.fillStyle = color1;
+			ctx.fillStyle = ship_spec.color_ship_main;
 			ctx.fillRect(
 				parseInt(rect.x - rect.w/2),
 				parseInt(rect.y - rect.h/2),
@@ -406,7 +483,7 @@ module.exports = {
 					var tile_size_x = x_max - x_min;
 					var tile_size_y = y_max - y_min;
 					//figure out which sides are open (not inside) and draw edges / corners
-					ctx.fillStyle = color1_border;
+					ctx.fillStyle = ship_spec.color_ship_border;
 					var top_open = 		is_open(layout_grid, x, y - 1, ship.layout.width);
 					var bottom_open = 	is_open(layout_grid, x, y + 1, ship.layout.width);
 					var left_open = 	is_open(layout_grid, x - 1, y, ship.layout.width);
@@ -446,10 +523,10 @@ module.exports = {
 						ctx.fill();
 					}
 					//draw the actual tile where things go
-					ctx.fillStyle = color1;
+					ctx.fillStyle = ship_spec.color_ship_main;
 					ctx.fillRect(x_min, y_min, tile_size_x, tile_size_y);
 					//grid lines
-					ctx.fillStyle = color1_grid;
+					ctx.fillStyle = ship_spec.color_ship_grid;
 					if(!bottom_open){	//horizontal
 						ctx.fillRect(x_min + 2, y_max - 1, tile_size_x - 4, 1);
 					}
@@ -462,8 +539,8 @@ module.exports = {
 			//TODO: draw other ship accessories  (portholes, dents, etc)
 		}
 		//generate a basic rectangle
-		var gen_rect = function(hash_ind, scale, center, origin_str){
-			var width = normalize.lerp(0.2, 0.8, normalize.hash(hash, hash_ind, 4)) * scale;
+		var gen_rect = function(hash_width, scale, center, origin_str){
+			var width = normalize.lerp(0.2, 0.8, hash_width) * scale;
 			var area = Math.pow((0.8*scale)/2, 2);
 			var rect = {x: center.x, y: center.y, w: width, h: area/width};
 			//adjust x/y for origin
@@ -502,19 +579,18 @@ module.exports = {
 			}
 		}
 		// --- background
-		ctx.fillStyle = color2;
+		ctx.fillStyle = ship_spec.color_back;
 		ctx.fillRect(0,0,canvas.width,canvas.height);
 		// --- generate virtual ship grid, on the main attack/defend grid
 		//TODO: fix problem when summing together rectangles in ship layout (ship layout should have a uniform value)
 		var v_grid = global_vars.grid_canvas;
 		ship.layout = fields.composite(v_grid);			//boolean grid of what tiles are inside/outside the ship
-		var main_rect = gen_rect(21, 0.8 * v_grid.w, {x: v_grid.w/2, y: v_grid.h/2});
+		var main_rect = gen_rect(ship_spec.ship_main_rect_ratio, 0.8 * v_grid.w, {x: v_grid.w/2, y: v_grid.h/2});
 		ship.layout.addField(fields.rectangle(main_rect, 1));
-		//add appendages to ship (rectangles mostly)
-		var appendages = [{pos: 15, rect: 30}, {pos: 40, rect: 50}, {pos: 30, rect: 15}];		//hash to use to generate position / rectangle
-		for (var i = 0; i < appendages.length; i++) {
-			var peri = pick_peri(normalize.hash(hash, appendages[i].pos, 4), main_rect);
-			var append = gen_rect(appendages[i].rect, 10, peri, peri.o);
+		//add appendages to ship
+		for (var i = 0; i < ship_spec.ship_aux_rects.length; i++) {
+			var peri = pick_peri(ship_spec.ship_aux_rects[i].pos, main_rect);
+			var append = gen_rect(ship_spec.ship_aux_rects[i].ratio, 10, peri, peri.o);
 			ship.layout.addField(fields.rectangle(append, 1));
 		}
 		//TODO: add items to some appropriate spot on ship
@@ -605,53 +681,6 @@ module.exports = {
 		//TODO: draw space backgroud (with neat colors)
 		//TODO: draw stars, planets, dust, mist, etc
 		ship.elem = canvas;
-		return ship;
-	},
-
-	gen_ship_stats: function(hash){
-		//stats are:
-		//
-		//      - HP: max health points, represents the ship integrity
-		//      - ENRG: max energy levels, energy is used to perform actions. if you run out you essentially die
-		//      - THRP: throughput, how much energy the ship can source in a turn
-		//				calculated from the sum of all battery energ production values (the opposite of consumption)
-		//
-		//      - level up boosts are how much stats grow per level.
-		//        ex: HP_BST, etc
-		//
-		// --- generate basic items
-		ship = {};
-		ship['hp_max_val'] = normalize.hash(hash, 8, 4);
-		ship['hp_max_mul'] = 100;
-
-		var battery = ship_items.gen_battery(hash, 1);
-		battery.name = "Starter";
-		var shield = ship_items.gen_shield(hash, 1);
-		shield.name = "Starter";
-		var weapon = ship_items.gen_weapon(hash, 1);
-		weapon.name = "Starter";
-
-		//TODO: normalize across max energy, shield, damage, and max health
-		var norm = {max_energy: battery.max_energy_val, max_shield: shield.max_shield_val, damage: weapon.damage_val, hp_max: ship.hp_max_val};
-		normalize.stats(norm, ['max_energy', 'max_shield', 'damage', 'hp_max']);
-		battery.max_energy_val = norm.max_energy;
-		battery.max_energy = parseInt(battery.max_energy_mul * battery.max_energy_val);
-		shield.max_shield_val = norm.max_shield;
-		shield.max_shield = parseInt(shield.max_shield_mul * shield.max_shield_val);
-		weapon.damage_val = norm.damage;
-		weapon.damage = parseInt(weapon.damage_mul * weapon.damage_val);
-		ship.hp_max_val = norm.hp_max;
-		ship.hp_max = parseInt(ship.hp_max_mul * ship.hp_max_val);
-		ship.hp = ship.hp_max;
-
-		//get stat boosts
-		ship['e_max_bst'] = normalize.hash(hash, 12, 4);
-		ship['thrp_bst'] = normalize.hash(hash, 16, 4);
-		ship['hp_max_bst'] = normalize.hash(hash, 20, 4);
-		//normalize across stat boosts
-		normalize.stats(ship, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
-		//add the base items
-		ship.items = [battery, shield, weapon];
 		return ship;
 	},
 
