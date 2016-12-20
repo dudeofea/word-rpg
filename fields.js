@@ -7,10 +7,7 @@
 //	etc) which the addon modules would cause.
 //
 
-//linearly interpolate between two values with a 0-1 normalized value
-function lerp(start, end, value){
-	return start + (end - start)*value;
-}
+var normalize = require('./normalize.js');
 
 module.exports = {
 	//for creating composite fields
@@ -127,6 +124,7 @@ module.exports = {
 		field.cy = cy;
 		return field;
 	},
+	//a rectangle with uniform value inside, and zero value outside
 	rectangle: function(rect, strength){
 		var field = {};
 		field.run = function(x, y){
@@ -142,9 +140,5 @@ module.exports = {
 		field.y_max = rect.y + rect.h / 2;
 		field.on_value = strength;
 		return field;
-	},
-	//a blurry arrow type thing
-	arrow: {
-
 	}
 }

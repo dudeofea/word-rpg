@@ -45,14 +45,6 @@ domready(function(){ init_rpg(); });
 //	  into their god core
 //
 
-//get a 0 - 1 range from a series of hex characters
-String.prototype.normalize = function(start, length){
-	var val = this.substring(start, start+length);
-	//console.log(val);
-	var max = Math.pow(2, length*4) - 1;
-	return parseInt(val, 16)/max;
-}
-
 //generate a gaussian distribution over a grid, returns the grid
 function gaussian(strength, radius, template){
 	var w = template.elem.width;

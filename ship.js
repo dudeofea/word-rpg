@@ -10,25 +10,10 @@ var global_vars = require('./globals.js');
 var convert = require('color-convert');
 var transforms = require('./transforms.js');
 var fields = require('./fields.js');
-
-//normalize a set of stats in object so they have an average of 1.0
-function normalize_stats(obj, stats){
-	var avg = 0;
-	//get average
-	for (var i = 0; i < stats.length; i++) {
-		avg += obj[stats[i]];
-	}
-	avg /= stats.length;
-	//normalize
-	for (var i = 0; i < stats.length; i++) {
-		obj[stats[i]] /= avg;
-	}
-}
-
-//linearly interpolate between two values with a 0-1 normalized value
-function lerp(start, end, value){
-	return start + (end - start)*value;
-}
+var debug = require('./debug.js');
+var Sha256 = require('./sha256.js');
+var ship_items = require('./item.js');
+var normalize = require('./normalize.js');
 
 module.exports = {
 	//makes a ui for a ship
@@ -321,7 +306,7 @@ module.exports = {
 		var batteries = elem('div', "batteries");
 		var cells = ship.items_by_type('battery');
 		for (var i = 0; i < cells.length; i++) {
-			var item = rpg.item.make_ui(cells[i]);
+			var item = ship_items.make_ui(cells[i]);
 			item.index = ship.items.indexOf(cells[i]);
 			item.onclick = item_select;
 			cells[i].ui_elem = item;
@@ -332,7 +317,7 @@ module.exports = {
 		var shields = elem('div', "defense");
 		var cells = ship.items_by_type('shield');
 		for (var i = 0; i < cells.length; i++) {
-			var item = rpg.item.make_ui(cells[i]);
+			var item = ship_items.make_ui(cells[i]);
 			item.index = ship.items.indexOf(cells[i]);
 			item.onclick = item_select;
 			cells[i].ui_elem = item;
@@ -343,7 +328,7 @@ module.exports = {
 		var weapons = elem('div', "weapons");
 		var cells = ship.items_by_type('weapon');
 		for (var i = 0; i < cells.length; i++) {
-			var item = rpg.item.make_ui(cells[i]);
+			var item = ship_items.make_ui(cells[i]);
 			item.index = ship.items.indexOf(cells[i]);
 			item.onclick = item_select;
 			cells[i].ui_elem = item;
@@ -371,8 +356,8 @@ module.exports = {
 		ctx = canvas.getContext('2d');
 		// --- pick colors scheme
 		//a set of hues/saturations is picked while the lightness is controlled
-		var a = 60*(hash.normalize(58, 4) - 0.5);
-		var b = 60*(hash.normalize(42, 4) - 0.5);
+		var a = 60*(normalize.hash(hash, 58, 4) - 0.5);
+		var b = 60*(normalize.hash(hash, 42, 4) - 0.5);
 		var color1 = '#'+convert.lab.hex(30, a, b);
 		var color1_border = '#'+convert.lab.hex(20, a, b);
 		var color1_grid = '#'+convert.lab.hex(23, a, b);
@@ -405,14 +390,14 @@ module.exports = {
 		//TODO: add ui control for zooming in/out of ship so you can see things better
 		//TODO: add ui control for panning to different parts of ship
 		//draw a ship based on a floorplan (place where you put items and shit)
-		var draw_ship = function(layout){
-			var tile_size = global_vars.ship_canvas.w / layout.width;
+		var draw_ship = function(ship){
+			var tile_size = global_vars.ship_canvas.w / ship.layout.width;
 			var border_size = 10;
-			var layout_grid = layout.render();
+			var layout_grid = ship.layout.render();
 			for (var i = 0; i < layout_grid.length; i++) {
 				if(layout_grid[i] > 0){
-					var x = i % layout.width;
-					var y = (i - x) / layout.width;
+					var x = i % ship.layout.width;
+					var y = (i - x) / ship.layout.width;
 					//calc variable tile size to fit to pixel borders
 					var x_min = Math.ceil(x * tile_size);
 					var x_max = Math.ceil((x + 1) * tile_size);
@@ -422,10 +407,10 @@ module.exports = {
 					var tile_size_y = y_max - y_min;
 					//figure out which sides are open (not inside) and draw edges / corners
 					ctx.fillStyle = color1_border;
-					var top_open = 		is_open(layout_grid, x, y - 1, layout.width);
-					var bottom_open = 	is_open(layout_grid, x, y + 1, layout.width);
-					var left_open = 	is_open(layout_grid, x - 1, y, layout.width);
-					var right_open = 	is_open(layout_grid, x + 1, y, layout.width);
+					var top_open = 		is_open(layout_grid, x, y - 1, ship.layout.width);
+					var bottom_open = 	is_open(layout_grid, x, y + 1, ship.layout.width);
+					var left_open = 	is_open(layout_grid, x - 1, y, ship.layout.width);
+					var right_open = 	is_open(layout_grid, x + 1, y, ship.layout.width);
 					//edges
 					if(top_open){
 						ctx.fillRect(x_min, y_min - border_size, tile_size_x, border_size);
@@ -478,7 +463,7 @@ module.exports = {
 		}
 		//generate a basic rectangle
 		var gen_rect = function(hash_ind, scale, center, origin_str){
-			var width = lerp(0.2, 0.8, hash.normalize(hash_ind, 4)) * scale;
+			var width = normalize.lerp(0.2, 0.8, normalize.hash(hash, hash_ind, 4)) * scale;
 			var area = Math.pow((0.8*scale)/2, 2);
 			var rect = {x: center.x, y: center.y, w: width, h: area/width};
 			//adjust x/y for origin
@@ -520,18 +505,26 @@ module.exports = {
 		ctx.fillStyle = color2;
 		ctx.fillRect(0,0,canvas.width,canvas.height);
 		// --- generate virtual ship grid, on the main attack/defend grid
+		//TODO: fix problem when summing together rectangles in ship layout (ship layout should have a uniform value)
 		var v_grid = global_vars.grid_canvas;
-		var ship_layout = fields.composite(v_grid);			//boolean grid of what tiles are inside/outside the ship
+		ship.layout = fields.composite(v_grid);			//boolean grid of what tiles are inside/outside the ship
 		var main_rect = gen_rect(21, 0.8 * v_grid.w, {x: v_grid.w/2, y: v_grid.h/2});
-		ship_layout.addField(fields.rectangle(main_rect, 1));
-		//add extra appendages to ship (rectangles mostly)
-		//TODO: fix weirdness with some appendages, and add moar
-		var pos1 = hash.normalize(15, 4);
-		var peri1 = pick_peri(pos1, main_rect);
-		var append1 = gen_rect(30, 10, peri1, peri1.o);
-		ship_layout.addField(fields.rectangle(append1, 1));
+		ship.layout.addField(fields.rectangle(main_rect, 1));
+		//add appendages to ship (rectangles mostly)
+		var appendages = [{pos: 15, rect: 30}, {pos: 40, rect: 50}, {pos: 30, rect: 15}];		//hash to use to generate position / rectangle
+		for (var i = 0; i < appendages.length; i++) {
+			var peri = pick_peri(normalize.hash(hash, appendages[i].pos, 4), main_rect);
+			var append = gen_rect(appendages[i].rect, 10, peri, peri.o);
+			ship.layout.addField(fields.rectangle(append, 1));
+		}
+		//TODO: add items to some appropriate spot on ship
+		//TODO: add markers on grid equal to item index (in ship array)
+		//TODO: add pos field to item in array (for tile-based drawing later)
+		for (var i = 0; i < ship.items.length; i++) {
+			this.get_open_spots(ship, ship.items[i].size);
+		}
 		//generate ship visual around said virtual grid (with rounded corners and such)
-		draw_ship(ship_layout);
+		draw_ship(ship);
 		// --- ship public methods
 		//get all ship items of a type
 		ship.items_by_type = function(type){
@@ -628,19 +621,19 @@ module.exports = {
 		//
 		// --- generate basic items
 		ship = {};
-		ship['hp_max_val'] = hash.normalize(8, 4);
+		ship['hp_max_val'] = normalize.hash(hash, 8, 4);
 		ship['hp_max_mul'] = 100;
 
-		var battery = rpg.item.gen_battery(hash, 1);
+		var battery = ship_items.gen_battery(hash, 1);
 		battery.name = "Starter";
-		var shield = rpg.item.gen_shield(hash, 1);
+		var shield = ship_items.gen_shield(hash, 1);
 		shield.name = "Starter";
-		var weapon = rpg.item.gen_weapon(hash, 1);
+		var weapon = ship_items.gen_weapon(hash, 1);
 		weapon.name = "Starter";
 
 		//TODO: normalize across max energy, shield, damage, and max health
 		var norm = {max_energy: battery.max_energy_val, max_shield: shield.max_shield_val, damage: weapon.damage_val, hp_max: ship.hp_max_val};
-		normalize_stats(norm, ['max_energy', 'max_shield', 'damage', 'hp_max']);
+		normalize.stats(norm, ['max_energy', 'max_shield', 'damage', 'hp_max']);
 		battery.max_energy_val = norm.max_energy;
 		battery.max_energy = parseInt(battery.max_energy_mul * battery.max_energy_val);
 		shield.max_shield_val = norm.max_shield;
@@ -652,13 +645,42 @@ module.exports = {
 		ship.hp = ship.hp_max;
 
 		//get stat boosts
-		ship['e_max_bst'] = hash.normalize(12, 4);
-		ship['thrp_bst'] = hash.normalize(16, 4);
-		ship['hp_max_bst'] = hash.normalize(20, 4);
+		ship['e_max_bst'] = normalize.hash(hash, 12, 4);
+		ship['thrp_bst'] = normalize.hash(hash, 16, 4);
+		ship['hp_max_bst'] = normalize.hash(hash, 20, 4);
 		//normalize across stat boosts
-		normalize_stats(ship, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
+		normalize.stats(ship, ['e_max_bst', 'thrp_bst', 'hp_max_bst']);
 		//add the base items
 		ship.items = [battery, shield, weapon];
 		return ship;
+	},
+
+	//gets all open indexes on ship for a certain item size (returns boolean map)
+	get_open_spots: function(ship, size){
+		//go through all the spots
+		var layout_grid = ship.layout.render();
+		var open_grid = Array.apply(null, Array(layout_grid.length)).map(Number.prototype.valueOf, 0);
+		for (var i = 0; i < layout_grid.length; i++) {
+			if(layout_grid[i] > 0){
+				//check if size itersects with ship bounds
+				var x = i % ship.layout.width;
+				var y = (i - x) / ship.layout.width;
+				var good = true;
+				for (var s_y = 0; s_y < size.y; s_y++) {
+					var s_off = (y + s_y) * ship.layout.width;
+					for (var s_x = 0; s_x < size.x; s_x++) {
+						if(layout_grid[x + s_x + s_off] != 1){
+							good = false;
+							break;
+						}
+					}
+				}
+				if(good){
+					open_grid[i] = 1;
+				}
+			}
+		}
+		debug.print_array_2d(open_grid, ship.layout.width);
+		return open_grid;
 	}
 };

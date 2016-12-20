@@ -3,6 +3,16 @@
 //
 //	Convenience functions to create elements
 //
+
+//add document fallback for testing
+var test = false;
+if(typeof document == "undefined" || document == null){
+	var MockBrowser = require('mock-browser').mocks.MockBrowser;
+	var mock = new MockBrowser();
+	document = mock.getDocument();
+	test = true;
+}
+
 module.exports = function(tag, cla, content){
 	//create the element
 	var e = document.createElement(tag);
@@ -21,6 +31,26 @@ module.exports = function(tag, cla, content){
 	}
 	e.removeClass = function(name){
 		//TODO: use regex to replace all instances of name in class
+	}
+	//add fallback for canvas context
+	if(test && tag.toUpperCase() == "CANVAS"){
+		e.getContext = function(){
+			return {
+				beginPath: function(){},
+				moveTo: function(){},
+				lineTo: function(){},
+				quadraticCurveTo: function(){},
+				closePath: function(){},
+				fill: function(){},
+				arc: function(){},
+				drawImage: function(){},
+				save: function(){},
+				translate: function(){},
+				rotate: function(){},
+				restore: function(){},
+				fillRect: function(){},
+			}
+		};
 	}
 	//clone node override to copy canvas contents
 	e.regularCloneNode = e.cloneNode;
