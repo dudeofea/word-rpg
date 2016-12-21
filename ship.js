@@ -345,7 +345,7 @@ module.exports = {
 	gen_ship: function(name){
 		var hash = Sha256.hash(name);
 		var stats = this.gen_ship_stats(hash);
-		//TODO: make ship params from hash
+		//make ship params from hash
 		var params = {};
 		// --- pick color scheme
 		//a set of hues/saturations is picked while the lightness is controlled
@@ -362,9 +362,23 @@ module.exports = {
 			{pos: normalize.hash(hash, 40, 4), ratio: normalize.hash(hash, 50, 4)},
 			{pos: normalize.hash(hash, 30, 4), ratio: normalize.hash(hash, 15, 4)}
 		];
-		var ship = this.create_ship(params, stats.items);
+		var ship = this.create_ship(params);
+		//add additional stats
 		ship.name = name;
 		ship.hash = hash;
+		for (var s in stats) {
+			if (stats.hasOwnProperty(s)) {
+				ship[s] = stats[s];
+			}
+		}
+		//TODO: add items to some appropriate spot on ship
+		//TODO: add markers on grid equal to item index (in ship array)
+		//TODO: add pos field to item in array (for tile-based drawing later)
+		for (var i = 0; i < ship.items.length; i++) {
+			this.get_open_spots(ship, ship.items[i].size);
+		}
+		//generate ship visual around said virtual grid (with rounded corners and such)
+		ship.draw();
 		return ship;
 	},
 
@@ -417,7 +431,7 @@ module.exports = {
 
 	//create/load a ship with a set of parameters
 	//TODO: add given items
-	create_ship: function(params, items){
+	create_ship: function(params){
 		var ship_defaults = {
 			color_ship_main: '#EEE',
 			color_ship_border: '#AAA',
@@ -428,34 +442,19 @@ module.exports = {
 		};
 		//get all given ship parameters
 		var ship_spec = ship_defaults;
-		for (var p in params) {
-			if (params.hasOwnProperty(p)) {
-				ship_spec[p] = params[p];
+		if(params != null){
+			for (var p in params) {
+				if (params.hasOwnProperty(p)) {
+					ship_spec[p] = params[p];
+				}
 			}
 		}
-		var ship = { items: items };
+		var ship = {};
 		// --- generate graphics
 		var canvas = elem('canvas', 'rpg-canvas');
 		canvas.height = global_vars.ship_canvas.w;
 		canvas.width = global_vars.ship_canvas.h;
 		ctx = canvas.getContext('2d');
-		// --- make a basic shape to build on
-		//draw a generated rectangle
-		var draw_rect = function(rect){
-			//draw the rectangle
-			ctx.fillStyle = ship_spec.color_ship_main;
-			ctx.fillRect(
-				parseInt(rect.x - rect.w/2),
-				parseInt(rect.y - rect.h/2),
-				parseInt(rect.w),
-				parseInt(rect.h));
-		}
-		//draw multiple
-		var draw_rects = function(rects){
-			for (var i = 0; i < rects.length; i++) {
-				draw_rect(rects[i]);
-			}
-		}
 		//checks if a spot on a grid is zero (nothing there)
 		var is_open = function(grid, x, y, width){
 			var i = x + y * width;
@@ -467,14 +466,13 @@ module.exports = {
 		//TODO: add ui control for zooming in/out of ship so you can see things better
 		//TODO: add ui control for panning to different parts of ship
 		//draw a ship based on a floorplan (place where you put items and shit)
-		var draw_ship = function(ship){
-			var tile_size = global_vars.ship_canvas.w / ship.layout.width;
+		ship.draw = function(){
+			var tile_size = global_vars.ship_canvas.w / this.layout.width;
 			var border_size = 10;
-			var layout_grid = ship.layout.render();
-			for (var i = 0; i < layout_grid.length; i++) {
-				if(layout_grid[i] > 0){
-					var x = i % ship.layout.width;
-					var y = (i - x) / ship.layout.width;
+			for (var i = 0; i < this.layout.length; i++) {
+				if(this.layout[i] > 0){
+					var x = i % this.layout.width;
+					var y = (i - x) / this.layout.width;
 					//calc variable tile size to fit to pixel borders
 					var x_min = Math.ceil(x * tile_size);
 					var x_max = Math.ceil((x + 1) * tile_size);
@@ -484,10 +482,10 @@ module.exports = {
 					var tile_size_y = y_max - y_min;
 					//figure out which sides are open (not inside) and draw edges / corners
 					ctx.fillStyle = ship_spec.color_ship_border;
-					var top_open = 		is_open(layout_grid, x, y - 1, ship.layout.width);
-					var bottom_open = 	is_open(layout_grid, x, y + 1, ship.layout.width);
-					var left_open = 	is_open(layout_grid, x - 1, y, ship.layout.width);
-					var right_open = 	is_open(layout_grid, x + 1, y, ship.layout.width);
+					var top_open = 		is_open(this.layout, x, y - 1, ship.layout.width);
+					var bottom_open = 	is_open(this.layout, x, y + 1, ship.layout.width);
+					var left_open = 	is_open(this.layout, x - 1, y, ship.layout.width);
+					var right_open = 	is_open(this.layout, x + 1, y, ship.layout.width);
 					//edges
 					if(top_open){
 						ctx.fillRect(x_min, y_min - border_size, tile_size_x, border_size);
@@ -581,26 +579,18 @@ module.exports = {
 		// --- background
 		ctx.fillStyle = ship_spec.color_back;
 		ctx.fillRect(0,0,canvas.width,canvas.height);
-		// --- generate virtual ship grid, on the main attack/defend grid
-		//TODO: fix problem when summing together rectangles in ship layout (ship layout should have a uniform value)
+		// --- create ship layout using array instead of analog transformable field
 		var v_grid = global_vars.grid_canvas;
-		ship.layout = fields.composite(v_grid);			//boolean grid of what tiles are inside/outside the ship
+		var ship_layout_field = fields.static(v_grid);			//boolean grid of what tiles are inside/outside the ship
 		var main_rect = gen_rect(ship_spec.ship_main_rect_ratio, 0.8 * v_grid.w, {x: v_grid.w/2, y: v_grid.h/2});
-		ship.layout.addField(fields.rectangle(main_rect, 1));
+		ship_layout_field.unionField(fields.rectangle(main_rect, 1));
 		//add appendages to ship
 		for (var i = 0; i < ship_spec.ship_aux_rects.length; i++) {
 			var peri = pick_peri(ship_spec.ship_aux_rects[i].pos, main_rect);
 			var append = gen_rect(ship_spec.ship_aux_rects[i].ratio, 10, peri, peri.o);
-			ship.layout.addField(fields.rectangle(append, 1));
+			ship_layout_field.unionField(fields.rectangle(append, 1));
 		}
-		//TODO: add items to some appropriate spot on ship
-		//TODO: add markers on grid equal to item index (in ship array)
-		//TODO: add pos field to item in array (for tile-based drawing later)
-		for (var i = 0; i < ship.items.length; i++) {
-			this.get_open_spots(ship, ship.items[i].size);
-		}
-		//generate ship visual around said virtual grid (with rounded corners and such)
-		draw_ship(ship);
+		ship.layout = ship_layout_field;
 		// --- ship public methods
 		//get all ship items of a type
 		ship.items_by_type = function(type){
@@ -687,29 +677,28 @@ module.exports = {
 	//gets all open indexes on ship for a certain item size (returns boolean map)
 	get_open_spots: function(ship, size){
 		//go through all the spots
-		var layout_grid = ship.layout.render();
-		var open_grid = Array.apply(null, Array(layout_grid.length)).map(Number.prototype.valueOf, 0);
-		for (var i = 0; i < layout_grid.length; i++) {
-			if(layout_grid[i] > 0){
+		var open_grid = ship.layout.clone();
+		for (var i = 0; i < open_grid.length; i++) {
+			if(open_grid[i] > 0){
 				//check if size itersects with ship bounds
-				var x = i % ship.layout.width;
-				var y = (i - x) / ship.layout.width;
+				var x = i % open_grid.width;
+				var y = (i - x) / open_grid.width;
 				var good = true;
+				//go through item spots
 				for (var s_y = 0; s_y < size.y; s_y++) {
-					var s_off = (y + s_y) * ship.layout.width;
+					var s_off = (y + s_y) * open_grid.width;
 					for (var s_x = 0; s_x < size.x; s_x++) {
-						if(layout_grid[x + s_x + s_off] != 1){
+						if(open_grid[x + s_x + s_off] != 1){
 							good = false;
 							break;
 						}
 					}
 				}
-				if(good){
-					open_grid[i] = 1;
+				if(!good){
+					open_grid[i] = 0;
 				}
 			}
 		}
-		debug.print_array_2d(open_grid, ship.layout.width);
 		return open_grid;
 	}
 };

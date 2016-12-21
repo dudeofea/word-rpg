@@ -6,11 +6,14 @@
 //	some functions to transform it (translate, scale,
 //	etc) which the addon modules would cause.
 //
+//	A static field is special in that it cannot be
+//  modified by transforms, it's basically just an
+//  array with some additional info.
 
 var normalize = require('./normalize.js');
 
 module.exports = {
-	//for creating composite fields
+	//for drawing multiple fields onto a grid
 	composite: function(size){
 		var comp = {};
 		comp.width = size.w;
@@ -109,6 +112,55 @@ module.exports = {
 			return new_comp;
 		}
 		return comp;
+	},
+	//for drawing non-transformable (static) fields, AKA arrays
+	//other fields can only be added directly to the array
+	static: function(size, array){
+		var sta = Array.apply(null, Array(size.w*size.h)).map(Number.prototype.valueOf, 0);
+		//if we have an array, copy over what we can
+		if(array != null){
+			var l = Math.min(sta.length, array.length);
+			for (var i = 0; i < l; i++) {
+				sta[i] = array[i];
+			}
+		}
+		sta.width = size.w;
+		sta.height= size.h;
+		//add a new field to array (this)
+		sta.addField = function(f){
+			//just use standard x,y points with no transforms
+			for (var y = 0; y < this.height; y++) {
+				var off = this.width * y;
+				for (var x = 0; x < this.width; x++) {
+					this[off + x] += f.run(x, y);
+				}
+			}
+		};
+		//sort of like addition, but only sets spots that are 0 with new field
+		sta.unionField = function(f){
+			//just use standard x,y points with no transforms
+			for (var y = 0; y < this.height; y++) {
+				var off = this.width * y;
+				for (var x = 0; x < this.width; x++) {
+					if(this[off + x] == 0){
+						this[off + x] = f.run(x, y);
+					}
+				}
+			}
+		};
+		//deep clone of the static field
+		sta.clone = function(){
+			//copy data
+			var new_sta = this.slice();
+			new_sta.width = this.width;
+			new_sta.height= this.height;
+			//copy functions
+			new_sta.addField = this.addField;
+			new_sta.unionField = this.unionField;
+			new_sta.clone = this.clone;
+			return new_sta;
+		};
+		return sta;
 	},
 	//a circular blur type thing
 	gaussian: function(cx, cy, strength, radius){
