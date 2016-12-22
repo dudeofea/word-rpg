@@ -1,6 +1,7 @@
 var ship = require('../ship.js');
 var fields = require('../fields.js');
 var debug = require('../debug.js');
+var item = require('../item.js');
 
 function fieldsEqual(a, b){
 	expect(a.width).toBe(b.width);
@@ -26,7 +27,7 @@ function fieldsEqual(a, b){
 	}
 }
 
-describe("Spaceships", function() {
+describe("Spaceship", function() {
 	describe("item placement", function() {
 		it("calculates open spots on empty ship", function() {
 			//create a default ship
@@ -41,12 +42,64 @@ describe("Spaceships", function() {
 				0, 0, 0, 0, 0,
 			]);
 			//test the result
-			var res = ship.get_open_spots(myship, {x: 2, y: 1})
+			var res = ship.get_open_spots(myship, {w: 2, h: 1})
 			var ans = fields.static({w: 5, h: 5}, [
 				0, 0, 0, 0, 0,
 				0, 1, 1, 0, 0,
 				0, 1, 1, 0, 0,
 				0, 0, 1, 0, 0,
+				0, 0, 0, 0, 0,
+			]);
+			fieldsEqual(res, ans);
+		});
+		it("adds items to ship layout", function() {
+			//create a default ship
+			var myship = ship.create_ship();
+			//create a custom ship layout (using fields) by hand
+			//in some weird shape, then test the open spots
+			myship.layout = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 1, 0,
+				1, 1, 1, 1, 0,
+				0, 0, 1, 1, 1,
+				0, 0, 0, 0, 0,
+			]);
+			//test the result
+			var myitem = item.gen_item('test', 1);
+			myitem.size = {w: 2, h: 1};
+			myship.addItem(myitem, {x: 0, y: 2});
+			var ans = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 1, 0,
+				2, 2, 1, 1, 0,
+				0, 0, 1, 1, 1,
+				0, 0, 0, 0, 0,
+			]);
+			fieldsEqual(myship.layout, ans);
+		});
+		it("calculates open spots with an exisiting item", function() {
+			//create a default ship
+			var myship = ship.create_ship();
+			//create a custom ship layout (using fields) by hand
+			//in some weird shape, then test the open spots
+			myship.layout = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 1, 0,
+				1, 1, 1, 1, 0,
+				1, 1, 1, 1, 1,
+				0, 0, 0, 0, 0,
+			]);
+			//add the item
+			var myitem = item.gen_item('test', 1);
+			myitem.size = {w: 2, h: 1};
+			myship.addItem(myitem, {x: 0, y: 3});
+			//test the result
+			var res = ship.get_open_spots(myship, {w: 2, h: 2});
+			var ans = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 0, 0,
+				0, 0, 1, 0, 0,
+				0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0,
 			]);
 			fieldsEqual(res, ans);

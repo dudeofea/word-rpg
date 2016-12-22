@@ -29,7 +29,7 @@ module.exports = {
 		item.name = name;
 		//TODO: add a health stat to items
 		//TODO: add a size attribute to items (either a box dimension or a shape grid), even to mod items
-		item.size = {x: 3, y: 2};
+		item.size = {w: 3, h: 2};
 		//TODO: add capacitor item for charging bursts
 		return item;
 	},
@@ -92,7 +92,7 @@ module.exports = {
 		ctx.fillStyle = '#' + convert.lab.hex(20, a, b);
 		ctx.fillRect(top_left.x+w+barrel_w-7, parseInt(top_left.y+h/2-5), 4, 11);
 		//TODO: add a size attribute to items (either a box dimension or a shape grid), even to mod items
-		item.size = {x: 3, y: 2};
+		item.size = {w: 3, h: 2};
 		//be a gun
 		item.run = function(available_energy, ship, enemy){
 			//TODO: add modifiers
@@ -148,7 +148,7 @@ module.exports = {
 				canvas.width/2+x, canvas.height/2+y, 5, 10, 2, ang, color2);
 		}
 		//TODO: add a size attribute to items (either a box dimension or a shape grid), even to mod items
-		item.size = {x: 3, y: 2};
+		item.size = {w: 3, h: 2};
 		//be a shield
 		item.run = function(available_energy, ship){
 			//TODO: add modifiers
@@ -228,7 +228,7 @@ module.exports = {
 			draw.rounded_rect(ctx, (canvas.width - part_w)/2, i*(part_h+5)+10, part_w, part_h, radius, color1);
 		}
 		//TODO: add a size attribute to items (either a box dimension or a shape grid), even to mod items
-		item.size = {x: 3, y: 2};
+		item.size = {w: 3, h: 2};
 		//consumes no energy
 		item.run = function(){ return 0; }
 		return item;

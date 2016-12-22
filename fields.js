@@ -136,14 +136,15 @@ module.exports = {
 				}
 			}
 		};
-		//sort of like addition, but only sets spots that are 0 with new field
+		//sort of like addition, but only sets spots instead of adding them
 		sta.unionField = function(f){
 			//just use standard x,y points with no transforms
 			for (var y = 0; y < this.height; y++) {
 				var off = this.width * y;
 				for (var x = 0; x < this.width; x++) {
-					if(this[off + x] == 0){
-						this[off + x] = f.run(x, y);
+					var val = f.run(x, y);
+					if(val != 0){
+						this[off + x] = val;
 					}
 				}
 			}

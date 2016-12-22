@@ -592,6 +592,15 @@ module.exports = {
 		}
 		ship.layout = ship_layout_field;
 		// --- ship public methods
+		//add a new item to the ship and update layout
+		ship.addItem = function(item, pos){
+			var item_rect = {
+				x: pos.x, y: pos.y,
+				w: item.size.w, h: item.size.h
+			};
+			//TODO: add IDs to items to differentiate, and track those IDs
+			this.layout.unionField(fields.rectangle(item_rect, 2));
+		}
 		//get all ship items of a type
 		ship.items_by_type = function(type){
 			var ret = [];
@@ -685,9 +694,9 @@ module.exports = {
 				var y = (i - x) / open_grid.width;
 				var good = true;
 				//go through item spots
-				for (var s_y = 0; s_y < size.y; s_y++) {
+				for (var s_y = 0; s_y < size.h; s_y++) {
 					var s_off = (y + s_y) * open_grid.width;
-					for (var s_x = 0; s_x < size.x; s_x++) {
+					for (var s_x = 0; s_x < size.w; s_x++) {
 						if(open_grid[x + s_x + s_off] != 1){
 							good = false;
 							break;
