@@ -52,7 +52,7 @@ describe("Spaceship", function() {
 			]);
 			fieldsEqual(res, ans);
 		});
-		it("adds items to ship layout", function() {
+		it("adds an item to ship layout", function() {
 			//create a default ship
 			var myship = ship.create_ship();
 			//create a custom ship layout (using fields) by hand
@@ -67,7 +67,7 @@ describe("Spaceship", function() {
 			//test the result
 			var myitem = item.gen_item('test', 1);
 			myitem.size = {w: 2, h: 1};
-			myship.addItem(myitem, {x: 0, y: 2});
+			myship.add_item(myitem, {x: 0, y: 2});
 			var ans = fields.static({w: 5, h: 5}, [
 				0, 0, 0, 0, 0,
 				0, 1, 1, 1, 0,
@@ -92,7 +92,7 @@ describe("Spaceship", function() {
 			//add the item
 			var myitem = item.gen_item('test', 1);
 			myitem.size = {w: 2, h: 1};
-			myship.addItem(myitem, {x: 0, y: 3});
+			myship.add_item(myitem, {x: 0, y: 3});
 			//test the result
 			var res = ship.get_open_spots(myship, {w: 2, h: 2});
 			var ans = fields.static({w: 5, h: 5}, [
@@ -103,6 +103,85 @@ describe("Spaceship", function() {
 				0, 0, 0, 0, 0,
 			]);
 			fieldsEqual(res, ans);
+		});
+		it("adds 3 items to ship layout", function() {
+			//create a default ship
+			var myship = ship.create_ship();
+			//create a custom ship layout (using fields) by hand
+			//in some weird shape, then test the open spots
+			myship.layout = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 1, 0,
+				1, 1, 1, 1, 0,
+				0, 0, 1, 1, 1,
+				0, 0, 0, 0, 0,
+			]);
+			//test the result
+			var myitem = item.gen_item('test', 1);
+			myitem.size = {w: 2, h: 1};
+			myship.add_item(myitem, {x: 1, y: 1});
+			myship.add_item(myitem, {x: 0, y: 2});
+			myship.add_item(myitem, {x: 2, y: 3});
+			var ans = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 2, 2, 1, 0,
+				3, 3, 1, 1, 0,
+				0, 0, 4, 4, 1,
+				0, 0, 0, 0, 0,
+			]);
+			fieldsEqual(myship.layout, ans);
+		});
+		it("moves an item on ship layout", function() {
+			//create a default ship
+			var myship = ship.create_ship();
+			//create a custom ship layout (using fields) by hand
+			//in some weird shape, then test the open spots
+			myship.layout = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 1, 0,
+				1, 1, 1, 1, 0,
+				0, 0, 1, 1, 1,
+				0, 0, 0, 0, 0,
+			]);
+			//test the result
+			var myitem = item.gen_item('test', 1);
+			myitem.size = {w: 2, h: 1};
+			var id = myship.add_item(myitem, {x: 2, y: 3});
+			myship.move_item(id, {x: 0, y: 2});
+			var ans = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 1, 0,
+				2, 2, 1, 1, 0,
+				0, 0, 1, 1, 1,
+				0, 0, 0, 0, 0,
+			]);
+			fieldsEqual(myship.layout, ans);
+		});
+		it("deletes an item from ship layout", function() {
+			//create a default ship
+			var myship = ship.create_ship();
+			//create a custom ship layout (using fields) by hand
+			//in some weird shape, then test the open spots
+			myship.layout = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 1, 0,
+				1, 1, 1, 1, 0,
+				0, 0, 1, 1, 1,
+				0, 0, 0, 0, 0,
+			]);
+			//test the result
+			var myitem = item.gen_item('test', 1);
+			myitem.size = {w: 2, h: 1};
+			var id = myship.add_item(myitem, {x: 2, y: 3});
+			myship.delete_item(id);
+			var ans = fields.static({w: 5, h: 5}, [
+				0, 0, 0, 0, 0,
+				0, 1, 1, 1, 0,
+				1, 1, 1, 1, 0,
+				0, 0, 1, 1, 1,
+				0, 0, 0, 0, 0,
+			]);
+			fieldsEqual(myship.layout, ans);
 		});
 	});
 });

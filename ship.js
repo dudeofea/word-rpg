@@ -593,13 +593,25 @@ module.exports = {
 		ship.layout = ship_layout_field;
 		// --- ship public methods
 		//add a new item to the ship and update layout
-		ship.addItem = function(item, pos){
+		ship.add_item = function(item, pos){
 			var item_rect = {
 				x: pos.x, y: pos.y,
 				w: item.size.w, h: item.size.h
 			};
 			//TODO: add IDs to items to differentiate, and track those IDs
 			this.layout.unionField(fields.rectangle(item_rect, 2));
+		}
+		//TODO: move an exisiting item to a new position
+		ship.move_item = function(id, pos){
+
+		}
+		//TODO: delete an exisiting item from layout
+		ship.delete_item = function(id){
+			
+		}
+		//TODO: get item by layout ID
+		ship.item_by_id = function(id){
+
 		}
 		//get all ship items of a type
 		ship.items_by_type = function(type){
@@ -610,14 +622,6 @@ module.exports = {
 				}
 			}
 			return ret;
-		}
-		//run a function for all items of a type
-		ship.for_item_type = function(type, cb){
-			var items = this.items_by_type(type);
-			for (var i = 0; i < items.length; i++) {
-				var ret = cb(items[i]);
-				if(ret != null){ items[i] = ret; }
-			}
 		}
 		//initialize the ship for combat (full shields, full batteries, etc)
 		ship.init = function(){
