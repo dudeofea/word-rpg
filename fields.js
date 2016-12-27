@@ -177,8 +177,17 @@ module.exports = {
 		field.cy = cy;
 		return field;
 	},
-	//a rectangle with uniform value inside, and zero value outside
+	//a rectangle centered at (x,y) with uniform value inside, and zero value outside
 	rectangle: function(rect, strength){
+		var bb = {};
+		bb.x_min = rect.x - rect.w / 2;
+		bb.x_max = rect.x + rect.w / 2;
+		bb.y_min = rect.y - rect.h / 2;
+		bb.y_max = rect.y + rect.h / 2;
+		return this.bounding_box(bb, strength);
+	},
+	//a bounding box with a size value inside of min/max x and y, and zero outside
+	bounding_box: function(bb, strength){
 		var field = {};
 		field.run = function(x, y){
 			//check if in rectangle or not
@@ -187,10 +196,10 @@ module.exports = {
 			}
 			return this.on_value;
 		}
-		field.x_min = rect.x - rect.w / 2;
-		field.x_max = rect.x + rect.w / 2;
-		field.y_min = rect.y - rect.h / 2;
-		field.y_max = rect.y + rect.h / 2;
+		field.x_min = bb.x_min;
+		field.x_max = bb.x_max;
+		field.y_min = bb.y_min;
+		field.y_max = bb.y_max;
 		field.on_value = strength;
 		return field;
 	}

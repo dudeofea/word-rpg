@@ -593,25 +593,57 @@ module.exports = {
 		ship.layout = ship_layout_field;
 		// --- ship public methods
 		//add a new item to the ship and update layout
-		ship.add_item = function(item, pos){
-			var item_rect = {
-				x: pos.x, y: pos.y,
-				w: item.size.w, h: item.size.h
+		ship.items_inserted = 0;
+		ship.items = [];
+		ship.add_item = function(item, pos, id){
+			var item_bb = {
+				x_min: pos.x,
+				y_min: pos.y,
+				x_max: pos.x + item.size.w - 1,
+				y_max: pos.y + item.size.h - 1
 			};
-			//TODO: add IDs to items to differentiate, and track those IDs
-			this.layout.unionField(fields.rectangle(item_rect, 2));
+			//use IDs to items to differentiate, and track those IDs
+			if(id == null){
+				this.items_inserted++;
+				id = this.items_inserted + 1;
+			}
+			this.layout.unionField(fields.bounding_box(item_bb, id));
+			//add to ship items array
+			item.id = id;
+			item.bb = item_bb;
+			this.items.push(item);
+			return id;
 		}
-		//TODO: move an exisiting item to a new position
-		ship.move_item = function(id, pos){
-
-		}
-		//TODO: delete an exisiting item from layout
-		ship.delete_item = function(id){
-			
-		}
-		//TODO: get item by layout ID
+		//return an item by id (also add it's index)
 		ship.item_by_id = function(id){
-
+			for (var i = 0; i < this.items.length; i++) {
+				if(this.items[i].id == id){
+					var item = this.items[i];
+					item.index = i;
+					return item;
+				}
+			}
+			return null;
+		};
+		//move an exisiting item to a new position
+		ship.move_item = function(id, pos){
+			var item = this.item_by_id(id);
+			if(item == null){
+				return;
+			}
+			this.delete_item(id);
+			this.add_item(item, pos, id);
+		};
+		//delete an exisiting item from layout
+		ship.delete_item = function(id){
+			var item = this.item_by_id(id);
+			if(item == null){
+				return;
+			}
+			//remove from ship layout
+			this.layout.unionField(fields.bounding_box(item.bb, 1));
+			//remove from items array
+			this.items.splice(item.index, 1);
 		}
 		//get all ship items of a type
 		ship.items_by_type = function(type){
