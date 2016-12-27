@@ -42,7 +42,7 @@ describe("Spaceship", function() {
 				0, 0, 0, 0, 0,
 			]);
 			//test the result
-			var res = ship.get_open_spots(myship, {w: 2, h: 1})
+			var res = myship.get_open_spots({w: 2, h: 1})
 			var ans = fields.static({w: 5, h: 5}, [
 				0, 0, 0, 0, 0,
 				0, 1, 1, 0, 0,
@@ -94,7 +94,7 @@ describe("Spaceship", function() {
 			myitem.size = {w: 2, h: 1};
 			myship.add_item(myitem, {x: 0, y: 3});
 			//test the result
-			var res = ship.get_open_spots(myship, {w: 2, h: 2});
+			var res = myship.get_open_spots({w: 2, h: 2});
 			var ans = fields.static({w: 5, h: 5}, [
 				0, 0, 0, 0, 0,
 				0, 1, 1, 0, 0,

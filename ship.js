@@ -371,11 +371,31 @@ module.exports = {
 				ship[s] = stats[s];
 			}
 		}
-		//TODO: add items to some appropriate spot on ship
-		//TODO: add markers on grid equal to item index (in ship array)
-		//TODO: add pos field to item in array (for tile-based drawing later)
-		for (var i = 0; i < ship.items.length; i++) {
-			this.get_open_spots(ship, ship.items[i].size);
+		var get_random_open_spot = function(ship, size){
+			//get sum of array (only has 1's or 0's)
+			var sum = 0;
+			var open = ship.get_open_spots(size);
+			for (var i = 0; i < open.length; i++) {
+				sum += open[i];
+			}
+			//pick random spot
+			var spot = Math.floor(Math.random() * sum);
+			//get it's position
+			i = 0;
+			while(spot >= 0){
+				spot -= open[i];
+				i++;
+			}
+			i--;
+			return {x: i % 25, y: Math.floor(i / 25)};
+		}
+		//add items to some appropriate spot on ship
+		var items = ship.items;
+		ship.items = [];
+		for (var i = 0; i < items.length; i++) {
+			console.log('adding', items[i]);
+			var spot = get_random_open_spot(ship, items[i].size);
+			ship.add_item(items[i], spot);
 		}
 		//generate ship visual around said virtual grid (with rounded corners and such)
 		ship.draw();
@@ -521,7 +541,12 @@ module.exports = {
 						ctx.fill();
 					}
 					//draw the actual tile where things go
-					ctx.fillStyle = ship_spec.color_ship_main;
+					if(this.layout[i] > 1){
+						//TODO: replace by drawing items separately after ship using pos/bb attribute
+						ctx.fillStyle = 'red';
+					}else{
+						ctx.fillStyle = ship_spec.color_ship_main;
+					}
 					ctx.fillRect(x_min, y_min, tile_size_x, tile_size_y);
 					//grid lines
 					ctx.fillStyle = ship_spec.color_ship_grid;
@@ -655,6 +680,33 @@ module.exports = {
 			}
 			return ret;
 		}
+		//gets all open indexes on ship for a certain item size (returns boolean map)
+		ship.get_open_spots = function(size){
+			//go through all the spots
+			var open_grid = this.layout.clone();
+			for (var i = 0; i < open_grid.length; i++) {
+				if(open_grid[i] > 0){
+					//check if size itersects with ship bounds
+					var x = i % open_grid.width;
+					var y = (i - x) / open_grid.width;
+					var good = true;
+					//go through item spots
+					for (var s_y = 0; s_y < size.h; s_y++) {
+						var s_off = (y + s_y) * open_grid.width;
+						for (var s_x = 0; s_x < size.w; s_x++) {
+							if(open_grid[x + s_x + s_off] != 1){
+								good = false;
+								break;
+							}
+						}
+					}
+					if(!good){
+						open_grid[i] = 0;
+					}
+				}
+			}
+			return open_grid;
+		}
 		//initialize the ship for combat (full shields, full batteries, etc)
 		ship.init = function(){
 			//set batteries to full
@@ -717,33 +769,5 @@ module.exports = {
 		//TODO: draw stars, planets, dust, mist, etc
 		ship.elem = canvas;
 		return ship;
-	},
-
-	//gets all open indexes on ship for a certain item size (returns boolean map)
-	get_open_spots: function(ship, size){
-		//go through all the spots
-		var open_grid = ship.layout.clone();
-		for (var i = 0; i < open_grid.length; i++) {
-			if(open_grid[i] > 0){
-				//check if size itersects with ship bounds
-				var x = i % open_grid.width;
-				var y = (i - x) / open_grid.width;
-				var good = true;
-				//go through item spots
-				for (var s_y = 0; s_y < size.h; s_y++) {
-					var s_off = (y + s_y) * open_grid.width;
-					for (var s_x = 0; s_x < size.w; s_x++) {
-						if(open_grid[x + s_x + s_off] != 1){
-							good = false;
-							break;
-						}
-					}
-				}
-				if(!good){
-					open_grid[i] = 0;
-				}
-			}
-		}
-		return open_grid;
 	}
 };
