@@ -352,6 +352,7 @@ module.exports = {
 		var b = 60*(normalize.hash(hash, 42, 4) - 0.5);
 		params.color_ship_main = '#'+convert.lab.hex(30, a, b);
 		params.color_ship_border = '#'+convert.lab.hex(20, a, b);
+		params.color_ship_border_rgb = convert.lab.rgb(20, a, b);
 		params.color_ship_grid = '#'+convert.lab.hex(23, a, b);
 		params.color_back = '#'+convert.lab.hex(5, a, b);
 		// --- ship layout generation
@@ -481,12 +482,14 @@ module.exports = {
 				}
 			}
 		}
-		var ship = {};
+		var ship = {
+			spec: ship_spec
+		};
 		// --- generate graphics
 		var canvas = elem('canvas', 'rpg-canvas');
 		canvas.height = global_vars.ship_canvas.w;
 		canvas.width = global_vars.ship_canvas.h;
-		ctx = canvas.getContext('2d');
+		var ctx = canvas.getContext('2d');
 		//checks if a spot on a grid is zero (nothing there)
 		var is_open = function(grid, x, y, width){
 			var i = x + y * width;
@@ -499,6 +502,7 @@ module.exports = {
 		//TODO: add ui control for panning to different parts of ship
 		//draw a ship based on a floorplan (place where you put items and shit)
 		ship.draw = function(){
+			console.log(this.spec.color_ship_border_rgb);
 			var tile_size = global_vars.ship_canvas.w / this.layout.width;
 			var border_size = 7;
 			for (var i = 0; i < this.layout.length; i++) {
@@ -513,11 +517,11 @@ module.exports = {
 					var tile_size_x = x_max - x_min;
 					var tile_size_y = y_max - y_min;
 					//figure out which sides are open (not inside) and draw edges / corners
-					ctx.fillStyle = ship_spec.color_ship_border;
-					var top_open = 		is_open(this.layout, x, y - 1, ship.layout.width);
-					var bottom_open = 	is_open(this.layout, x, y + 1, ship.layout.width);
-					var left_open = 	is_open(this.layout, x - 1, y, ship.layout.width);
-					var right_open = 	is_open(this.layout, x + 1, y, ship.layout.width);
+					ctx.fillStyle = this.spec.color_ship_border;
+					var top_open = 		is_open(this.layout, x, y - 1, this.layout.width);
+					var bottom_open = 	is_open(this.layout, x, y + 1, this.layout.width);
+					var left_open = 	is_open(this.layout, x - 1, y, this.layout.width);
+					var right_open = 	is_open(this.layout, x + 1, y, this.layout.width);
 					//edges
 					if(top_open){
 						ctx.fillRect(x_min, y_min - border_size, tile_size_x, border_size);
@@ -557,17 +561,21 @@ module.exports = {
 						//TODO: replace by drawing items separately after ship using pos/bb attribute
 						ctx.fillStyle = 'red';
 					}else{
-						ctx.fillStyle = ship_spec.color_ship_main;
+						ctx.fillStyle = this.spec.color_ship_main;
 					}
 					ctx.fillRect(x_min, y_min, tile_size_x, tile_size_y);
 					//grid lines
-					ctx.fillStyle = ship_spec.color_ship_grid;
+					ctx.fillStyle = this.spec.color_ship_grid;
 					if(!bottom_open){	//horizontal
 						ctx.fillRect(x_min + 2, y_max - 1, tile_size_x - 4, 1);
 					}
 					if(!right_open){	//vertical
 						ctx.fillRect(x_max - 1, y_min + 2, 1, tile_size_y - 4);
 					}
+					//upper hull
+					var hull_tile_health = this.upper_hull[i] / this.tile_hp_max;
+					ctx.fillStyle = "rgba(" + this.spec.color_ship_border_rgb[0] + "," + this.spec.color_ship_border_rgb[1] + "," + this.spec.color_ship_border_rgb[2] + "," + hull_tile_health + ")";
+					ctx.fillRect(x_min, y_min, tile_size_x, tile_size_y);
 				}
 			}
 			//TODO: draw rocket boosters in back of ship
@@ -792,7 +800,7 @@ module.exports = {
 				this.energy_bar.val += batteries[i].energy;
 			}
 			this.energy_bar.refresh();
-			//TODO: calc total ship health (sum of upper / lower hull health)
+			//calc total ship health (sum of upper / lower hull health)
 			this.health_bar.val = this.upper_hull.sum() + this.lower_hull.sum();
 			this.health_bar.refresh();
 			//scale grid based on maximum attainable shield level
@@ -803,6 +811,7 @@ module.exports = {
 			}
 			//TODO: give boosted shields a blue tinge when past max shield level
 			this.grid.refresh();
+			this.draw();
 		}
 		//TODO: draw space backgroud (with neat colors)
 		//TODO: draw stars, planets, dust, mist, etc
