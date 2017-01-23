@@ -30,6 +30,8 @@ module.exports = {
 		//TODO: add a health stat to items
 		//TODO: add a size attribute to items (either a box dimension or a shape grid), even to mod items
 		item.size = {w: 3, h: 2};
+		//TODO: add a hp stat specific to item types
+		item.hp = 100;
 		//TODO: add capacitor item for charging bursts
 		return item;
 	},

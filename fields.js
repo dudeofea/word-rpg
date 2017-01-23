@@ -12,7 +12,7 @@
 
 var normalize = require('./normalize.js');
 
-module.exports = {
+var fields_module = {
 	//for drawing multiple fields onto a grid
 	composite: function(size){
 		var comp = {};
@@ -64,11 +64,11 @@ module.exports = {
 			//return all frames
 			return frames;
 		}
-		//return an array to draw on a canvas
+		//return a static field to draw on a canvas or manipulate
 		comp.render = function(){
 			//make two 1d arrays of dimensions width x height
-			var arr = Array.apply(null, Array(this.width*this.height)).map(Number.prototype.valueOf, 0);
 			var arr_xy = Array.apply(null, Array(this.width*this.height)).map(Number.prototype.valueOf, 0);
+			var arr =fields_module.static({w: this.width, h: this.height});
 			//build array of xy points
 			for (var y = 0; y < this.height; y++) {
 				var off = this.width * y;
@@ -135,6 +135,7 @@ module.exports = {
 					this[off + x] += f.run(x, y);
 				}
 			}
+			return this;
 		};
 		//sort of like addition, but only sets spots instead of adding them
 		sta.unionField = function(f){
@@ -148,7 +149,58 @@ module.exports = {
 					}
 				}
 			}
+			return this;
 		};
+		//multiply every point by a scalar
+		sta.mul = function(mul){
+			for (var y = 0; y < this.height; y++) {
+				var off = this.width * y;
+				for (var x = 0; x < this.width; x++) {
+					this[off + x] *= mul;
+				}
+			}
+			return this;
+		}
+		//perform dot product of two static fields (assumes the same size)
+		sta.dot = function(sta2){
+			var new_sta = this.clone();
+			for (var i = 0; i < this.length; i++) {
+				new_sta[i] = this[i] * sta2[i];
+			}
+			return new_sta;
+		}
+		//returns all values less than a certain value
+		sta.lessThan = function(val){
+			var new_sta = this.clone();
+			for (var i = 0; i < new_sta.length; i++) {
+				if(new_sta[i] >= val){
+					new_sta[i] = 0;
+				}
+			}
+			return new_sta;
+		}
+		//get sum of the whole array
+		sta.sum = function(){
+			var sum = 0;
+			for (var i = 0; i < this.length; i++) {
+				sum += this[i]
+			}
+			return sum;
+		}
+		//for rounding values to nearest integer
+		sta.round = function(){
+			for (var y = 0; y < this.height; y++) {
+				var off = this.width * y;
+				for (var x = 0; x < this.width; x++) {
+					this[off + x] = Math.round(this[off + x]);
+				}
+			}
+			return this;
+		}
+		//it is a field afterall!
+		sta.run = function(x, y){
+			return this[this.width*y + x];
+		}
 		//deep clone of the static field
 		sta.clone = function(){
 			//copy data
@@ -159,6 +211,12 @@ module.exports = {
 			new_sta.addField = this.addField;
 			new_sta.unionField = this.unionField;
 			new_sta.clone = this.clone;
+			new_sta.mul = this.mul;
+			new_sta.lessThan = this.lessThan;
+			new_sta.sum = this.sum;
+			new_sta.round = this.round;
+			new_sta.run = this.run;
+			new_sta.dot = this.dot;
 			return new_sta;
 		};
 		return sta;
@@ -204,3 +262,5 @@ module.exports = {
 		return field;
 	}
 }
+
+module.exports = fields_module;

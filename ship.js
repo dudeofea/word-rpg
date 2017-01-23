@@ -344,7 +344,6 @@ module.exports = {
 	//generate a ship based off a string
 	gen_ship: function(name){
 		var hash = Sha256.hash(name);
-		var stats = this.gen_ship_stats(hash);
 		//make ship params from hash
 		var params = {};
 		// --- pick color scheme
@@ -364,6 +363,7 @@ module.exports = {
 		];
 		var ship = this.create_ship(params);
 		//add additional stats
+		var stats = this.gen_ship_stats(hash);
 		ship.name = name;
 		ship.hash = hash;
 		for (var s in stats) {
@@ -371,6 +371,19 @@ module.exports = {
 				ship[s] = stats[s];
 			}
 		}
+		// --- set ship global hp stat based on layout
+		var hull_tiles = 0;
+		for (var i = 0; i < ship.layout.length; i++) {
+			hull_tiles += ship.layout[i];
+		}
+		console.log(ship)
+		ship.hp_max = ship.tile_hp_max * hull_tiles * 2;	//2 for both upper / lower
+		ship.hp = ship.hp_max;
+		//make health layout of upper / lower hull. may change when
+		//adding hull pieces
+		ship.upper_hull = ship.layout.clone().mul(ship.tile_hp_max);
+		ship.lower_hull = ship.layout.clone().mul(ship.tile_hp_max);
+		//get an open spot to place an item of a certain size
 		var get_random_open_spot = function(ship, size){
 			//get sum of array (only has 1's or 0's)
 			var sum = 0;
@@ -393,7 +406,6 @@ module.exports = {
 		var items = ship.items;
 		ship.items = [];
 		for (var i = 0; i < items.length; i++) {
-			console.log('adding', items[i]);
 			var spot = get_random_open_spot(ship, items[i].size);
 			ship.add_item(items[i], spot);
 		}
@@ -415,8 +427,8 @@ module.exports = {
 		//
 		// --- generate basic items
 		ship = {};
-		ship['hp_max_val'] = normalize.hash(hash, 8, 4);
-		ship['hp_max_mul'] = 100;
+		ship['tile_hp_max_val'] = normalize.hash(hash, 8, 4);
+		ship['tile_hp_max_mul'] = 3;
 
 		var battery = ship_items.gen_battery(hash, 1);
 		battery.name = "Starter";
@@ -426,7 +438,7 @@ module.exports = {
 		weapon.name = "Starter";
 
 		//normalize across max energy, shield, damage, and max health
-		var norm = {max_energy: battery.max_energy_val, max_shield: shield.max_shield_val, damage: weapon.damage_val, hp_max: ship.hp_max_val};
+		var norm = {max_energy: battery.max_energy_val, max_shield: shield.max_shield_val, damage: weapon.damage_val, hp_max: ship.tile_hp_max_val};
 		normalize.stats(norm, ['max_energy', 'max_shield', 'damage', 'hp_max']);
 		battery.max_energy_val = norm.max_energy;
 		battery.max_energy = parseInt(battery.max_energy_mul * battery.max_energy_val);
@@ -434,9 +446,9 @@ module.exports = {
 		shield.max_shield = parseInt(shield.max_shield_mul * shield.max_shield_val);
 		weapon.damage_val = norm.damage;
 		weapon.damage = parseInt(weapon.damage_mul * weapon.damage_val);
-		ship.hp_max_val = norm.hp_max;
-		ship.hp_max = parseInt(ship.hp_max_mul * ship.hp_max_val);
-		ship.hp = ship.hp_max;
+		//just a note, hp is currently per hull tile so it will be multiplied later
+		ship.tile_hp_max_val = norm.hp_max;
+		ship.tile_hp_max = 2 + parseInt(ship.tile_hp_max_mul * ship.tile_hp_max_val);
 
 		//get stat boosts
 		ship['e_max_bst'] = normalize.hash(hash, 12, 4);
@@ -488,7 +500,7 @@ module.exports = {
 		//draw a ship based on a floorplan (place where you put items and shit)
 		ship.draw = function(){
 			var tile_size = global_vars.ship_canvas.w / this.layout.width;
-			var border_size = 10;
+			var border_size = 7;
 			for (var i = 0; i < this.layout.length; i++) {
 				if(this.layout[i] > 0){
 					var x = i % this.layout.width;
@@ -716,11 +728,13 @@ module.exports = {
 			}
 		}
 		//run one step of energy consumption / item usage
+		//enemy ship is passed if we want to perform actions against it
 		ship.run_step = function(enemy){
 			//TODO: incorporate reliability trickle-down from batteries
 			//get available energy from batteries and such
 			var available_energy = 0;
-			var batteries = this.items_by_type('battery')
+			var batteries = this.items_by_type('battery');
+			var weapons = this.items_by_type('weapon');
 			for (var i = 0; i < batteries.length; i++) {
 				available_energy += Math.min(-batteries[i].consumption, batteries[i].energy);
 			}
@@ -728,22 +742,46 @@ module.exports = {
 			//TODO: only run enabled items
 			//run the items
 			for (var i = 0; i < this.items.length; i++) {
-				if(this.items[i].type == 'battery'){ continue; }
+				if(this.items[i].type == 'battery' ||
+				   this.items[i].type == 'weapon'){
+					continue;
+				}
 				available_energy -= this.items[i].consumption;
 				if(available_energy < 0){ available_energy = 0; }
 				this.items[i].run(available_energy, ship, enemy);
 			}
-			//subtract energy used from batteries, sequentially
-			var spent_energy = inital_energy - available_energy;
-			for (var i = 0; i < batteries.length; i++) {
-				if(batteries[i].energy > 0){
-					var to_remove = Math.min(batteries[i].energy, spent_energy);
-					batteries[i].energy -= to_remove;
-					spent_energy -= to_remove;
-				};
+			//TODO: run weapons one at a time and show damage scores
+			var self = this;
+			var run_weapon = function(weapon){
+				console.log('attacking with: ', weapon);
+				//get all upper hull damage
+				var dmg = weapon.field.render().mul(-1 * weapon.damage).round();
+				var res = enemy.upper_hull.addField(dmg);
+				var oflow = res.lessThan(0);	//overflow damage that leaks to weapons
+				enemy.upper_hull.addField(oflow.clone().mul(-1));	//remove overflow spots
+				//TODO: get all item damage
+				//get all lower hull damage
+				var res = enemy.lower_hull.addField(oflow);
+				oflow = res.lessThan(0);
+				enemy.lower_hull.addField(oflow.clone().mul(-1));
+				//TODO: show all three types of damage
+				//subtract energy used from batteries, sequentially
+				var spent_energy = inital_energy - available_energy;
+				for (var i = 0; i < batteries.length; i++) {
+					if(batteries[i].energy > 0){
+						var to_remove = Math.min(batteries[i].energy, spent_energy);
+						batteries[i].energy -= to_remove;
+						spent_energy -= to_remove;
+					};
+				}
+				//refresh the view
+				self.refresh();
+			}
+			for (var i = 0; i < weapons.length; i++) {
+				setTimeout(run_weapon, (i+1) * 0000, weapons[i]);
 			}
 			//refresh the view
-			this.refresh();
+			self.refresh();
 		}
 		//refresh all things related to a ship (health bar, energy, etc)
 		ship.refresh = function(){
@@ -754,7 +792,8 @@ module.exports = {
 				this.energy_bar.val += batteries[i].energy;
 			}
 			this.energy_bar.refresh();
-			this.health_bar.val = this.hp;
+			//TODO: calc total ship health (sum of upper / lower hull health)
+			this.health_bar.val = this.upper_hull.sum() + this.lower_hull.sum();
 			this.health_bar.refresh();
 			//scale grid based on maximum attainable shield level
 			var shields = this.items_by_type('shield');
