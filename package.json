@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "procedurally generated rpg based on word input",
   "scripts": {
-    "start": "node_modules/watchify/bin/cmd.js rpg.js -o bundle.js & node_modules/node-sass/bin/node-sass style.scss -wo . --source-map . & node_modules/live-server/live-server.js . --ignore=\"style.scss,style.css.map\" --no-browser",
+    "start": "node_modules/watchify/bin/cmd.js rpg.js -o bundle.js & node_modules/node-sass/bin/node-sass style.scss -wo . --source-map . & node_modules/live-server/live-server.js . --ignore=\"style.scss,style.css.map,.git\" --no-browser",
     "test": "node_modules/.bin/jasmine"
   },
   "repository": {

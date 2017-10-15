@@ -16,10 +16,14 @@ var ship_items = require('./item.js');
 var normalize = require('./normalize.js');
 
 module.exports = {
+	//macros
+	PLAYER_SHIP: 'player',
+	ENEMY_SHIP: 'enemy',
 	//makes a ui for a ship
-	make_ui: function(ship, cla){
+	make_ui: function(ship, ship_type){
+		console.log(ship);
 		//to hold everything
-		var wrapper = elem('div', cla + " ship-ui");
+		var wrapper = elem('div', ship_type + " ship-ui");
 		//the actual ship
 		var ship_elem = elem('div', "ship");
 		ship_elem.appendChild(ship.elem);
@@ -27,6 +31,8 @@ module.exports = {
 		var ui_elem = elem('div', "ui");
 		//the ship name
 		var ship_name = elem('p', "ship-name", ship.name);
+		//the ship view selector
+		var ship_view_selector = this.make_view_selector(ship, ship_type == this.PLAYER_SHIP);
 		//the attack grid/matrix
 		ship.grid = this.make_grid();
 		//health / shield / energy bars
@@ -42,6 +48,7 @@ module.exports = {
 		ship.energy_bar = this.make_bar(ship.max_energy, 'energy', 'bolt');
 		//adding everything
 		ui_elem.appendChild(ship_name);
+		ui_elem.appendChild(ship_view_selector);
 		ui_elem.appendChild(ship.grid.elem);
 		ui_elem.appendChild(ship.health_bar.elem);
 		ui_elem.appendChild(ship.energy_bar.elem);
@@ -79,7 +86,7 @@ module.exports = {
 		return grid;
 	},
 
-	// --- make a colored bar
+	// --- make a colored bar (for health / energy, etc)
 	make_bar: function(max, cla, icon_class){
 		var bar = {max: max, val: max};
 		//wrapper
@@ -104,6 +111,42 @@ module.exports = {
 		}
 		bar.refresh();
 		return bar;
+	},
+	
+	make_view_selector: function(ship, enabled){
+		var selector = elem('div', "view-selector");
+		//onclick functions
+		var click = function(){
+			this.ship.view = this.viewType;
+			this.ship.draw();
+			var c = this.parentNode.childNodes;
+			for (var i = 0; i < c.length; i++) {
+				console.log(c);
+				c[i].removeClass("selected");
+			}
+			this.addClass("selected");
+		}
+		//make different types of views
+		var indoor = elem('div', 'view', "Inside");
+		var outdoor = elem('div', 'view', "Outside");
+		//if you're not allowed to change views (ex: enemy)
+		if(!enabled){
+			selector.addClass("disabled");
+			outdoor.addClass("selected");
+		}else{
+			indoor.addClass("selected");
+			//otherwise add onclick events
+			indoor.viewType = "indoor";
+			indoor.onclick = click;
+			indoor.ship = ship;
+			outdoor.viewType= "outdoor";
+			outdoor.onclick = click;
+			outdoor.ship = ship;
+		}
+		//add views to selector
+		selector.appendChild(indoor);
+		selector.appendChild(outdoor);
+		return selector;
 	},
 
 	// make control panel so user can edit their upcoming moves
@@ -498,13 +541,15 @@ module.exports = {
 			}
 			return true;
 		}
-		//TODO: add ui control for zooming in/out of ship so you can see things better
-		//TODO: add ui control for panning to different parts of ship
+		//ship view parameters
+		ship.view = "indoor";
+		ship.view_zoom = 1.0;			//TODO: add ui control for zooming in/out of ship so you can see things better
+		ship.view_pan = {x: 0, y: 0};	//TODO: add ui control for panning to different parts of ship
 		//draw a ship based on a floorplan (place where you put items and shit)
 		ship.draw = function(){
-			console.log(this.spec.color_ship_border_rgb);
 			var tile_size = global_vars.ship_canvas.w / this.layout.width;
 			var border_size = 7;
+			var outdoor_view = (this.view == "outdoor");
 			for (var i = 0; i < this.layout.length; i++) {
 				if(this.layout[i] > 0){
 					var x = i % this.layout.width;
@@ -572,10 +617,12 @@ module.exports = {
 					if(!right_open){	//vertical
 						ctx.fillRect(x_max - 1, y_min + 2, 1, tile_size_y - 4);
 					}
-					//upper hull
-					var hull_tile_health = this.upper_hull[i] / this.tile_hp_max;
-					ctx.fillStyle = "rgba(" + this.spec.color_ship_border_rgb[0] + "," + this.spec.color_ship_border_rgb[1] + "," + this.spec.color_ship_border_rgb[2] + "," + hull_tile_health + ")";
-					ctx.fillRect(x_min, y_min, tile_size_x, tile_size_y);
+					if(outdoor_view){
+						//upper hull
+						var hull_tile_health = this.upper_hull[i] / this.tile_hp_max;
+						ctx.fillStyle = "rgba(" + this.spec.color_ship_border_rgb[0] + "," + this.spec.color_ship_border_rgb[1] + "," + this.spec.color_ship_border_rgb[2] + "," + hull_tile_health + ")";
+						ctx.fillRect(x_min, y_min, tile_size_x, tile_size_y);
+					}
 				}
 			}
 			//TODO: draw rocket boosters in back of ship

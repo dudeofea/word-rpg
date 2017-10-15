@@ -49,6 +49,14 @@ $orange: #FF9F1C;
 $purple: #6320EE;
 $green: #139A43;
 
+//control panel
+$control-panel-light1: mix($light, $dark, 50%);
+$control-panel-light2: mix($light, $dark, 35%);
+$control-panel-height: 40px;
+
+$ship-title-height: 30px;
+$ship-ui-border: 3px solid darken($dark, 10);
+
 //fullscreen
 html, body, .rpg-screen, .rpg-combat-screen {
 	background-color: $dark;
@@ -69,8 +77,23 @@ html, body, .rpg-screen, .rpg-combat-screen {
 	display: none;
 }
 
-$ship-title-height: 30px;
-$ship-ui-border: 3px solid darken($dark, 10);
+//ship title
+%generic-header {
+	width: 100%;
+	left: 50%;
+	@include translate(-50%, 0);
+	padding: 0 10px;
+	font-family: monospace;
+	color: $light;
+	height: $ship-title-height;
+	line-height: $ship-title-height - 4;
+	background-color: $black;
+	@include border-radius(5px, 5px, 0, 0);
+	border: $ship-ui-border;
+	border-bottom: 0;
+	box-sizing: border-box;
+	position: absolute;
+}
 
 //ship ui (with grid, health, and energy)
 .ship-ui {
@@ -94,7 +117,7 @@ $ship-ui-border: 3px solid darken($dark, 10);
 	}
 	.ship, .ui {
 		width: 100%;
-		padding-top: $ship-title-height + 20px;
+		padding-top: 2*$ship-title-height + 16px;
 		box-sizing: border-box;
 		position: absolute;
 		top: 0;
@@ -163,27 +186,39 @@ $ship-ui-border: 3px solid darken($dark, 10);
 			@include border-radius(0, 0, 5px, 5px);
 		}
 	}
+	.ship-name {
+		@extend %generic-header;
+		top: 20px;
+		text-align: center;
+	}
+	.view-selector {
+		@extend %generic-header;
+		top: 20px + $ship-title-height;
+		height: $ship-title-height - 4;
+		line-height: $ship-title-height - 4;
+		border: none;
+		border-radius: 0;
+		background-color: rgba($light, 0.4);
+		color: rgba($black, 0.4);
+		.view {
+			width: 50%;
+			display: inline-block;
+			text-align: center;
+			&.selected {
+				color: $black;
+				text-decoration: none;
+			}
+		}
+	}
+	.disabled .view {
+		text-decoration: line-through;
+	}
 }
 
-//ship title
-.ship-ui .ship-name, .control-panel > .title {
-	width: 100%;
-	top: 20px;
-	left: 50%;
-	@include translate(-50%, 0);
-	padding: 0 10px;
-	font-family: monospace;
-	color: $light;
-	height: $ship-title-height;
-	line-height: $ship-title-height - 4;
-	background-color: $black;
-	@include border-radius(5px, 5px, 0, 0);
-	border: $ship-ui-border;
-	border-bottom: 0;
-	box-sizing: border-box;
-	position: absolute;
+.control-panel > .title {
+	@extend %generic-header;
+	top: 0;
 }
-.control-panel > .title { top: 0; }
 
 //combat screen
 .rpg-combat-screen {
@@ -194,10 +229,6 @@ $ship-ui-border: 3px solid darken($dark, 10);
 		padding: 0 30px 20px 30px;
 		box-sizing: border-box;
 	}
-	//control panel
-	$control-panel-light1: mix($light, $dark, 50%);
-	$control-panel-light2: mix($light, $dark, 35%);
-	$control-panel-height: 40px;
 	.control-panel {
 		position: relative;
 		min-height: 400px;

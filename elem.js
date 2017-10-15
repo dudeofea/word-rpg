@@ -30,7 +30,10 @@ module.exports = function(tag, cla, content){
 		this.className += " " + name;
 	}
 	e.removeClass = function(name){
-		//TODO: use regex to replace all instances of name in class
+		if(this.className.indexOf(name) == -1){
+			return;
+		}
+		this.className = this.className.split(name).join("").trim();
 	}
 	//add fallback for canvas context
 	if(test && tag.toUpperCase() == "CANVAS"){
